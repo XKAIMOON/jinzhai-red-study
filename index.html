@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>经纬金寨红 · 解码28年 —— 金寨红色研学地图</title>
+<meta name="description" content="以真实高程与行政区划数据解码金寨：为什么革命选中了这片三省交界的山地。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{
+  --paper:#f3eee1; --paper2:#eae3d2; --paper3:#e2dac6;
+  --ink:#332a1e; --ink2:#6d6150; --ink3:#9a8f7b;
+  --rule:#c8bca3; --rule2:#ded4bd;
+  --red:#a32b1c; --red2:#c04a2c; --red-soft:#efdcd4;
+  --blue:#2f6b8f; --blue2:#7fa8c0; --blue-soft:#dde8ee;
+  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","SimSun",serif;
+  --sans:"Noto Sans SC","Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+  --shadow:0 1px 0 #fff6 inset, 0 10px 30px -18px rgba(51,42,30,.5);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(163,43,28,.045), transparent 42%),
+    radial-gradient(circle at 88% 0%, rgba(47,107,143,.05), transparent 38%),
+    repeating-linear-gradient(0deg, rgba(120,105,80,.035) 0 1px, transparent 1px 3px);
+}
+.wrap{max-width:1360px;margin:0 auto;padding:0 26px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ---------- 顶栏 ---------- */
+.topbar{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,rgba(243,238,225,.97),rgba(243,238,225,.9));backdrop-filter:blur(8px);border-bottom:1px solid var(--rule)}
+.topbar .wrap{display:grid;grid-template-columns:auto minmax(300px,1fr) auto;gap:36px;align-items:center;padding-top:13px;padding-bottom:13px}
+.kicker{font-size:11.5px;letter-spacing:.22em;color:var(--ink3);text-transform:none;margin:0 0 6px}
+h1.title{font-family:var(--serif);font-weight:600;font-size:31px;line-height:1.15;margin:0;letter-spacing:.02em}
+h1.title .dot{color:var(--red)}
+.subtitle{font-family:var(--serif);font-size:14px;color:var(--ink2);margin:5px 0 0;letter-spacing:.06em}
+.thesis{margin:0;font-family:var(--serif);font-size:13.5px;line-height:1.7;color:var(--ink2);border-left:2px solid var(--red);padding-left:16px}
+.thesis b{color:var(--ink);font-weight:600}
+.thesis .hl{color:var(--red);font-weight:600}
+
+/* ---------- 图层开关 ---------- */
+.layers{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.layers .lbl{font-size:11px;letter-spacing:.2em;color:var(--ink3);margin-right:2px}
+.tog{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);background:#fbf8f0;color:var(--ink2);
+  padding:7px 13px 7px 10px;border-radius:2px;font-family:var(--sans);font-size:13px;cursor:pointer;transition:.18s;position:relative}
+.tog:hover{border-color:var(--ink3);color:var(--ink)}
+.tog .sw{width:14px;height:14px;border:1px solid var(--rule);border-radius:2px;display:grid;place-items:center;background:#fff;flex:0 0 auto}
+.tog .sw i{width:7px;height:7px;border-radius:1px;display:block;transform:scale(0);transition:.18s}
+.tog[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:#fff;box-shadow:0 1px 0 rgba(51,42,30,.08)}
+.tog[aria-pressed="true"] .sw i{transform:scale(1)}
+.tog[data-layer="admin"] .sw i{background:var(--red)}
+.tog[data-layer="terrain"] .sw i{background:#8a7546}
+.tog[data-layer="water"] .sw i{background:var(--blue)}
+.tog .en{font-size:10px;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase}
+
+/* ---------- 地图舞台 ---------- */
+.stage{position:relative;margin-top:26px}
+.mapframe{position:relative;border:1px solid var(--ink);background:#fff;box-shadow:var(--shadow);padding:0}
+.mapframe::after{content:"";position:absolute;inset:3px;border:1px solid var(--rule);pointer-events:none}
+.map-hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:12;background:rgba(51,42,30,.9);color:#f7f2e6;
+  font-size:12.5px;padding:8px 16px;border-radius:2px;letter-spacing:.04em;opacity:0;transition:.35s;pointer-events:none;white-space:nowrap}
+.map-hint.on{opacity:1}
+svg.map{display:block;width:100%;height:auto;background:#f6f2e8}
+.mk{cursor:pointer}
+.mk:focus{outline:none}
+.mk .ring{transition:.2s}
+.mk:hover .ring,.mk:focus .ring{stroke-width:3}
+.mk.active .ring{stroke-width:3.4}
+
+/* ---------- 结论条 ---------- */
+.insight{background:#faf7ee;border:1px solid var(--ink);border-top:none;
+  padding:14px 20px 15px 18px;display:flex;gap:14px;align-items:baseline}
+.insight .tag{font-size:10.5px;letter-spacing:.2em;color:#f7f2e6;background:var(--red);padding:3px 8px;border-radius:2px;white-space:nowrap;flex:0 0 auto;transform:translateY(-2px)}
+.insight p{margin:0;font-family:var(--serif);font-size:15px;line-height:1.85;color:var(--ink)}
+.insight em{font-style:normal;color:var(--red);font-weight:600}
+
+/* ---------- 点位卡 ---------- */
+.card{position:absolute;top:22px;right:22px;width:390px;max-width:calc(100% - 44px);z-index:20;
+  background:var(--paper);border:1px solid var(--ink);box-shadow:0 30px 60px -30px rgba(0,0,0,.6);
+  transform:translateX(calc(100% + 30px));transition:transform .42s cubic-bezier(.22,.8,.24,1);opacity:0}
+.card.on{transform:none;opacity:1}
+.card .hd{padding:16px 18px 13px;border-bottom:1px solid var(--rule);background:#fff;position:relative}
+.card .no{font-family:var(--serif);font-size:12px;letter-spacing:.24em;color:var(--red);margin:0 0 5px}
+.card h3{margin:0;font-family:var(--serif);font-size:19px;line-height:1.42;font-weight:600;padding-right:26px}
+.card .close{position:absolute;top:12px;right:12px;width:26px;height:26px;border:1px solid var(--rule);background:#fff;cursor:pointer;
+  color:var(--ink2);font-size:15px;line-height:1;border-radius:2px;display:grid;place-items:center}
+.card .close:hover{border-color:var(--ink);color:var(--ink)}
+.card .body{padding:15px 18px 18px;max-height:min(58vh,540px);overflow:auto}
+.grid{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:13.5px;margin:0 0 15px}
+.grid dt{color:var(--ink3);font-size:12px;letter-spacing:.08em;white-space:nowrap}
+.grid dd{margin:0;color:var(--ink);font-variant-numeric:tabular-nums}
+.grid dd .u{color:var(--ink3);font-size:12px;margin-left:2px}
+.qbox{background:#fff;border:1px solid var(--rule);border-left:3px solid var(--red);padding:13px 15px;margin:0 0 15px}
+.qbox h4{margin:0 0 7px;font-size:12px;letter-spacing:.16em;color:var(--ink3);font-weight:500}
+.qbox p{margin:0;font-family:var(--serif);font-size:15px;line-height:1.9;color:var(--ink)}
+.taskbox{border-top:1px dashed var(--rule);padding-top:12px}
+.taskbox h4{margin:0 0 7px;font-size:12px;letter-spacing:.16em;color:var(--ink3);font-weight:500}
+.taskbox ul{margin:0;padding-left:17px;font-size:13.5px;color:var(--ink2);line-height:1.75}
+.taskbox li::marker{color:var(--red2)}
+.ph{margin-top:14px;border:1px dashed var(--rule);background:#fbf8f0;padding:16px 14px;text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.06em}
+.ph b{display:block;color:var(--ink2);font-weight:500;font-size:13px;letter-spacing:.1em;margin-bottom:3px}
+
+/* ---------- 行程一览 ---------- */
+.itin{margin-top:30px}
+.itin-hd{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--ink);padding-bottom:9px}
+.itin-hd h2{margin:0;font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.03em}
+.itin-hd .note{margin:0;font-size:12.5px;color:var(--ink3);letter-spacing:.04em}
+.itin-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--ink);border-top:none;background:#faf7ee}
+.itin-card{position:relative;display:block;width:100%;text-align:left;font:inherit;color:inherit;background:transparent;
+  border:none;border-right:1px solid var(--rule);padding:15px 16px 16px;cursor:pointer;transition:background .18s}
+.itin-card:last-child{border-right:none}
+.itin-card:hover{background:#fff}
+.itin-card:focus-visible{outline:2px solid var(--red);outline-offset:-3px}
+.itin-card.on{background:#fff;box-shadow:inset 0 -3px 0 var(--red)}
+.itin-card .top{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.itin-card .badge{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fbf7ec;display:grid;place-items:center;
+  font-size:13px;font-weight:600;flex:none;line-height:1}
+.itin-card .when{font-size:11.5px;letter-spacing:.06em;color:var(--ink3)}
+.itin-card h3{margin:0 0 8px;font-family:var(--serif);font-size:15.5px;font-weight:600;line-height:1.45}
+.itin-card .meta{font-size:12.5px;color:var(--ink2);display:flex;gap:14px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.itin-card .meta b{font-weight:600;color:var(--ink)}
+.itin-card .terr{margin:9px 0 0;font-size:12px;color:var(--ink3);line-height:1.65}
+
+/* ---------- 剖面 ---------- */
+.profile{margin-top:30px;border:1px solid var(--ink);background:#faf7ee;box-shadow:var(--shadow);position:relative}
+.profile .ph{padding:15px 20px 4px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.profile h2{margin:0;font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.03em}
+.profile .note{margin:0;font-size:12.5px;color:var(--ink3);letter-spacing:.04em}
+.profile .read{margin-left:auto;font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;display:flex;gap:18px;flex-wrap:wrap}
+.profile .read b{font-weight:600;color:var(--ink)}
+.profile svg{display:block;width:100%;height:auto;cursor:crosshair;touch-action:none}
+.profile .cap{padding:2px 20px 14px;font-size:12px;color:var(--ink3);line-height:1.7;border-top:1px solid var(--rule2);margin-top:2px;padding-top:11px}
+.profile .cap b{color:var(--ink2);font-weight:600}
+
+/* ---------- 页脚 ---------- */
+footer{margin:38px 0 0;border-top:1px solid var(--rule);padding:20px 0 44px;color:var(--ink3);font-size:12px;line-height:1.85}
+footer .wrap{display:flex;gap:34px;flex-wrap:wrap}
+footer h5{margin:0 0 6px;font-size:11px;letter-spacing:.2em;color:var(--ink2);font-weight:500}
+footer p{margin:0;max-width:60ch}
+footer a{color:var(--ink2)}
+.credits{columns:2;column-gap:30px;max-width:640px}
+
+@media (max-width:1180px){
+  .topbar .wrap{grid-template-columns:1fr;gap:12px}
+  .thesis{border-left:none;padding-left:0}
+}
+@media (max-width:1080px){
+  .card{position:fixed;top:auto;bottom:0;left:0;right:0;width:auto;max-width:none;border-left:none;border-right:none;border-bottom:none;
+    transform:translateY(100%)}
+  .card.on{transform:none}
+  .card .body{max-height:46vh}
+  .itin-grid{grid-template-columns:repeat(2,1fr)}
+  .itin-card{border-bottom:1px solid var(--rule)}
+  .itin-card:nth-child(2n){border-right:none}
+  .itin-card:nth-last-child(-n+2){border-bottom:none}
+}
+@media (max-width:760px){
+  h1.title{font-size:24px}
+  .thesis{font-size:14px}
+  .wrap{padding:0 16px}
+  .insight{padding:12px 14px;flex-direction:column;gap:7px}
+  .insight p{font-size:13.5px}
+  .itin-grid{grid-template-columns:1fr}
+  .itin-card{border-right:none;border-bottom:1px solid var(--rule)}
+  .itin-card:last-child{border-bottom:none}
+}
+/* ---------- 主导航 ---------- */
+.subnav{grid-column:1/-1;display:flex;gap:3px;flex-wrap:wrap;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--rule2)}
+.subnav a{font-size:12.5px;color:var(--ink2);text-decoration:none;padding:5px 13px;border:1px solid transparent;border-radius:2px;letter-spacing:.03em;transition:.16s;white-space:nowrap}
+.subnav a:hover{color:var(--ink);border-color:var(--rule);background:#fff}
+.subnav a b{font-weight:600;color:var(--red);margin-right:5px}
+.subnav .sp{flex:1 1 auto}
+
+/* ---------- 通用版块 ---------- */
+.sec{margin-top:52px}
+.sec-hd{border-top:1px solid var(--ink);padding-top:15px;margin-bottom:20px;display:grid;grid-template-columns:minmax(280px,1fr) minmax(320px,1.15fr);gap:34px;align-items:end}
+.sec-kicker{margin:0 0 7px;font-size:10.5px;letter-spacing:.22em;color:var(--red)}
+.sec-hd h2{margin:0;font-family:var(--serif);font-size:27px;font-weight:600;line-height:1.25}
+.sec-sub{margin:0;font-size:13.5px;line-height:1.85;color:var(--ink2)}
+.sec-sub b{color:var(--ink)}
+.note-line{margin:14px 0 0;font-size:12px;color:var(--ink3);line-height:1.8}
+.note-line b{color:var(--ink2)}
+
+/* ---------- 地理解码器 ---------- */
+.decbar{display:grid;grid-template-columns:minmax(260px,1fr) auto auto;gap:22px;align-items:center;background:#fbf8f0;border:1px solid var(--ink);border-bottom:none;padding:13px 18px}
+.dec-tag{font-size:10.5px;letter-spacing:.2em;color:#f7f2e6;background:var(--ink);padding:3px 9px;border-radius:2px;margin-right:9px}
+.dec-p{margin:8px 0 0;font-family:var(--serif);font-size:14px;line-height:1.75;color:var(--ink2)}
+.dec-p b{color:var(--ink)}
+.dsteps{display:flex;gap:6px}
+.dstep{border:1px solid var(--rule);background:#fff;color:var(--ink3);font-size:12.5px;font-family:var(--sans);padding:6px 12px;border-radius:2px;cursor:pointer;transition:.18s;white-space:nowrap}
+.dstep:hover{border-color:var(--ink3);color:var(--ink)}
+.dstep.on{border-color:var(--ink);color:var(--ink);background:#f3eee1}
+.dstep.done{color:var(--red);border-color:#dfb9ae;background:var(--red-soft)}
+.dact{display:flex;gap:8px}
+.dbtn{border:1px solid var(--ink);background:var(--ink);color:#f7f2e6;font-family:var(--sans);font-size:13px;padding:8px 18px;border-radius:2px;cursor:pointer;transition:.18s;white-space:nowrap}
+.dbtn:hover{background:var(--red);border-color:var(--red)}
+.dbtn.gh{background:#fff;color:var(--ink2);border-color:var(--rule)}
+.dbtn.gh:hover{background:#fff;color:var(--ink);border-color:var(--ink3)}
+.decnarr{display:none;background:#fbf8f0;border:1px solid var(--ink);border-top:none;padding:14px 20px 15px}
+.decnarr.on{display:block;animation:decIn .42s ease both}
+@keyframes decIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.decnarr .no{font-size:10.5px;letter-spacing:.2em;color:#f7f2e6;background:var(--red);padding:3px 8px;border-radius:2px;margin-right:10px}
+.decnarr h4{display:inline;margin:0;font-family:var(--serif);font-size:17px;font-weight:600}
+.decnarr .lead{margin:9px 0 0;font-family:var(--serif);font-size:14.5px;line-height:1.8;color:var(--ink)}
+.decnarr .more{max-height:0;overflow:hidden;transition:max-height .42s ease}
+.decnarr.open .more{max-height:520px}
+.decnarr .more p{margin:11px 0 0;font-size:13px;line-height:1.9;color:var(--ink2);border-left:2px solid var(--rule);padding-left:14px}
+.decnarr .mt{display:inline-block;margin-top:10px;font-size:12px;color:var(--red);cursor:pointer;user-select:none;border-bottom:1px dashed var(--red)}
+.decnarr .go{margin-left:14px;font-size:12.5px;color:var(--ink);cursor:pointer;user-select:none;border-bottom:1px solid var(--ink)}
+
+/* ---------- 剧本杀 · 地理抉择 ---------- */
+.drama-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--ink);background:#fbf8f0}
+.drama-card{border-right:1px solid var(--rule);padding:19px 20px 21px}
+.drama-card:last-child{border-right:none}
+.drama-card h3{margin:0 0 4px;font-family:var(--serif);font-size:17px;font-weight:600}
+.drama-card .q{font-size:12px;color:var(--ink3);margin:0 0 13px}
+.opt{display:block;width:100%;text-align:left;border:1px solid var(--rule);background:#fff;border-radius:2px;padding:10px 12px;margin-bottom:8px;cursor:pointer;font-family:var(--sans);font-size:13px;color:var(--ink2);transition:.18s}
+.opt:hover{border-color:var(--ink3);color:var(--ink)}
+.opt.on{border-color:var(--ink);background:#f3eee1;color:var(--ink);box-shadow:inset 3px 0 0 var(--red)}
+.opt b{display:block;font-size:13.5px;color:var(--ink);margin-bottom:3px;font-weight:600}
+.opt .st{font-size:11.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.opt.on .st{color:var(--ink2)}
+.opt .st i{font-style:normal;color:var(--red);font-weight:600}
+.verdict{margin-top:12px;padding-top:11px;border-top:1px dashed var(--rule);font-size:12.5px;line-height:1.8;color:var(--ink2);min-height:56px}
+.verdict b{color:var(--red)}
+.cmp{margin-top:14px;border:1px solid var(--rule);background:#fdfbf5;padding:9px 8px 4px}
+.cmp svg{display:block;width:100%;height:auto}
+.drama-reveal{margin-top:16px;border:1px solid var(--ink);background:#fbf8f0;padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:start}
+.drama-reveal .rl{font-size:10.5px;letter-spacing:.2em;color:#f7f2e6;background:var(--red);padding:4px 9px;border-radius:2px;white-space:nowrap}
+.drama-reveal p{margin:0;font-family:var(--serif);font-size:14px;line-height:1.9;color:var(--ink)}
+.drama-reveal p+p{margin-top:9px;font-family:var(--sans);font-size:12.5px;color:var(--ink2)}
+
+/* ---------- 任务卡 ---------- */
+.tk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tk{border:1px solid var(--rule);background:#fbf8f0;padding:16px 16px 17px;display:flex;flex-direction:column}
+.tk .ico{font-size:19px;line-height:1;margin-bottom:9px}
+.tk h3{margin:0 0 5px;font-family:var(--serif);font-size:16px;font-weight:600}
+.tk .kind{font-size:11px;letter-spacing:.12em;color:var(--ink3);margin:0 0 11px}
+.tk ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.85;color:var(--ink2)}
+.tk li{margin-bottom:5px}
+.tk li:last-child{margin-bottom:0}
+.tk.hi{background:#fff;border-color:var(--ink)}
+.tk.hi .kind{color:var(--red)}
+.tk .badge{margin-top:auto;padding-top:12px;font-size:11.5px;color:var(--red);border-top:1px dashed var(--rule)}
+
+/* ---------- 成果展厅 ---------- */
+.gal-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.gal{border:1px solid var(--rule);background:#fff;padding:0;overflow:hidden;display:flex;flex-direction:column}
+.gal .thumb{height:104px;border-bottom:1px solid var(--rule);background:#f3eee1;display:grid;place-items:center;font-family:var(--serif);font-size:12px;color:var(--ink3);letter-spacing:.1em}
+.gal .bd{padding:14px 15px 16px}
+.gal h3{margin:0 0 6px;font-family:var(--serif);font-size:15.5px;font-weight:600}
+.gal p{margin:0;font-size:12.5px;line-height:1.8;color:var(--ink2)}
+
+/* ---------- 课程包 / 评审 ---------- */
+.pack{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:0;border:1px solid var(--ink);background:#fbf8f0}
+.pack>div{padding:19px 20px 21px;border-right:1px solid var(--rule)}
+.pack>div:last-child{border-right:none}
+.pack h3{margin:0 0 10px;font-family:var(--serif);font-size:16.5px;font-weight:600}
+.pack p{margin:0 0 9px;font-size:12.5px;line-height:1.85;color:var(--ink2)}
+.pack p:last-child{margin-bottom:0}
+.pack b{color:var(--ink)}
+.pack .kv{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:6px 0;border-bottom:1px dotted var(--rule);color:var(--ink2)}
+.pack .kv:last-child{border-bottom:none}
+.pack .kv b{font-variant-numeric:tabular-nums}
+.dl{display:inline-block;margin-top:11px;border:1px solid var(--ink);background:var(--ink);color:#f7f2e6;text-decoration:none;font-size:12.5px;padding:7px 15px;border-radius:2px;transition:.18s}
+.dl:hover{background:var(--red);border-color:var(--red)}
+.dl2{display:inline-block;margin:6px 6px 0 0;border:1px solid var(--rule);background:#fff;color:var(--ink2);text-decoration:none;font-size:12px;padding:5px 11px;border-radius:2px;transition:.18s}
+.dl2:hover{border-color:var(--ink);color:var(--ink);background:#f3eee1}
+
+@media (max-width:1080px){
+  .sec-hd{grid-template-columns:1fr;gap:14px;align-items:start}
+  .decbar{grid-template-columns:1fr;gap:13px}
+  .dsteps{flex-wrap:wrap}
+  .drama-grid{grid-template-columns:1fr}
+  .drama-card{border-right:none;border-bottom:1px solid var(--rule)}
+  .drama-card:last-child{border-bottom:none}
+  .tk-grid,.gal-grid{grid-template-columns:repeat(2,1fr)}
+  .pack{grid-template-columns:1fr}
+  .pack>div{border-right:none;border-bottom:1px solid var(--rule)}
+  .pack>div:last-child{border-bottom:none}
+  .drama-reveal{grid-template-columns:1fr;gap:12px}
+}
+@media (max-width:760px){
+  .tk-grid,.gal-grid{grid-template-columns:1fr}
+  .sec-hd h2{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div>
+      <p class="kicker">鄂豫皖大别山红色旅游创意策划大赛 · 红色研学课程设计</p>
+      <h1 class="title">经纬金寨红<span class="dot">·</span>解码28年</h1>
+      <p class="subtitle">金寨红色研学地图 ｜ 4 个研学点 · 2 天行程 · 79.6 公里</p>
+    </div>
+    <p class="thesis">
+      金寨不是一堆红色景点的集合。<br>
+      它是北纬 <b>31°</b> 上的一条山脊，把鄂豫皖三省缝在一起；<br>
+      是 <b>116</b> 座千米山峰围出的屏障，让政权守得住；<br>
+      是史河出山的那条河谷，让政权活得下去。<br>
+      <span class="hl">用等高线读历史，用行政区划看缝隙，用河谷走向追英雄。</span>
+    </p>
+    <div class="layers" role="group" aria-label="地图图层开关">
+      <span class="lbl">图层</span>
+      <button class="tog" data-layer="admin" aria-pressed="true"><span class="sw"><i></i></span>行政缝隙<span class="en">三省交界</span></button>
+      <button class="tog" data-layer="terrain" aria-pressed="true"><span class="sw"><i></i></span>山地屏障<span class="en">等高线</span></button>
+      <button class="tog" data-layer="water" aria-pressed="true"><span class="sw"><i></i></span>淮河水系<span class="en">史河</span></button>
+    </div>
+    <nav class="subnav" aria-label="页面导航">
+      <a href="#decoder"><b>①</b>地理解码器 · 为什么是金寨</a>
+      <a href="#map"><b>②</b>研学地图 · 四点点位</a>
+      <a href="#sec-profile"><b>③</b>地形剖面 · 读高程</a>
+      <a href="#drama"><b>④</b>剧本杀 · 地理抉择</a>
+      <a href="#tasks"><b>⑤</b>任务卡 · 四类闯关</a>
+      <a href="#works"><b>⑥</b>成果展厅 · 地理视角</a>
+      <span class="sp"></span>
+      <a href="#pack"><b>⑦</b>课程包 · 教师与评审</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="stage" id="decoder" aria-label="金寨红色研学地图">
+    <div class="decbar" id="decbar">
+      <div>
+        <span class="dec-tag">地 理 解 码 器</span>
+        <span class="dec-p" id="decP">为什么是金寨？按「开始解码」，让三层地理条件依次浮现。</span>
+      </div>
+      <div class="dsteps" id="decSteps" role="group" aria-label="解码层序">
+        <button class="dstep" type="button" data-k="admin">① 行政缝隙</button>
+        <button class="dstep" type="button" data-k="terrain">② 山地屏障</button>
+        <button class="dstep" type="button" data-k="water">③ 淮河水系</button>
+      </div>
+      <div class="dact">
+        <button class="dbtn" type="button" id="decPlay">▶ 开始解码</button>
+        <button class="dbtn gh" type="button" id="decReset">重置</button>
+      </div>
+    </div>
+    <div class="mapframe">
+      <svg class="map" id="map" viewBox="0 0 2240 1752" preserveAspectRatio="xMidYMid meet" role="img" aria-label="金寨县研学地图"></svg>
+      <div class="map-hint" id="hint">点击图层开关叠加查看 · 点击点位查看研学卡</div>
+    </div>
+    <div class="decnarr" id="decnarr" aria-live="polite">
+      <span class="no" id="decNo"></span><h4 id="decT"></h4>
+      <p class="lead" id="decS"></p>
+      <span class="mt" id="decMore">展开：这一层为什么重要？</span><span class="go" id="decGo" hidden>开始研学地图 →</span>
+      <div class="more"><p id="decD"></p></div>
+    </div>
+    <div class="insight" id="insight" aria-live="polite">
+      <span class="tag">叠 加 结 论</span>
+      <p id="insightText"><em>三省交界让政权立得住 → 大别山让政权守得住 → 史河让政权活得下去 = 28 年红旗不倒。</em></p>
+    </div>
+
+    <aside class="card" id="card" aria-hidden="true">
+      <div class="hd">
+        <p class="no" id="cardNo"></p>
+        <h3 id="cardName"></h3>
+        <button class="close" id="cardClose" aria-label="关闭">✕</button>
+      </div>
+      <div class="body">
+        <dl class="grid" id="cardGrid"></dl>
+        <div class="qbox">
+          <h4>为 什 么 是 这 里 ？</h4>
+          <p id="cardWhy"></p>
+        </div>
+        <div class="taskbox">
+          <h4>本 站 任 务</h4>
+          <ul id="cardTasks"></ul>
+        </div>
+        <div class="ph" id="cardPhoto"><b>实景照片 · 待补</b>点位实拍图到位后接入此处</div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="itin" aria-label="研学行程一览">
+    <div class="itin-hd">
+      <h2>四个研学点 · 两天行程</h2>
+      <p class="note">点开任一站，回到地图上看它为什么被选在这里</p>
+    </div>
+    <div class="itin-grid" id="itinGrid"></div>
+  </section>
+
+  <section class="profile" id="sec-profile" aria-label="沿线地形剖面">
+    <div class="ph">
+      <h2>沿线地形剖面</h2>
+      <p class="note">梅山 → 丁家埠 → 汤家汇 ｜ 沿真实公路取点，高程引自 SRTM</p>
+      <div class="read">
+        <span>里程 <b class="num" id="rKm">0.0</b> km</span>
+        <span>海拔 <b class="num" id="rEl">86</b> m</span>
+        <span>最近站点 <b id="rSt">金寨县革命博物馆</b></span>
+      </div>
+    </div>
+    <svg id="profile" viewBox="0 0 1000 210" preserveAspectRatio="none" role="img" aria-label="沿线海拔剖面图"></svg>
+    <p class="cap">
+      <b>读图：</b>四个研学点全部落在 <b>80–207 米</b> 的河谷平地与宽谷里，没有一处建在千米以上——低处聚人、建政、屯粮，高处只用来隐蔽和游击。
+      金寨县全境最低 <b>59.5 米</b>、最高天堂寨 <b>1729.1 米</b>，相对高差 <b>1669.6 米</b>，这条剖面走的是其中最平缓的一段。
+    </p>
+  </section>
+  <section class="sec" id="drama">
+    <div class="sec-hd">
+      <div>
+        <p class="sec-kicker">沉浸式演绎 · 自编剧本《穿石庙会议 · 立夏前夜》</p>
+        <h2>1929 年那个夜晚，<br>地理就是生死抉择</h2>
+      </div>
+      <p class="sec-sub">
+        5 月 6 日立夏节夜，商南起义在商城南部（今金寨县境）爆发：<b>总指挥部设于穿石庙，首发地是丁家埠大王庙</b>。
+        三天后的 5 月 9 日，各路起义队伍齐聚斑竹园，宣布成立中国工农红军第十一军第三十二师，师长周维炯。
+        剧本里，学生拿到一张手绘地图和三个必须当场拍板的地理问题——先自己判，再对照历史。
+      </p>
+    </div>
+
+    <div class="drama-grid">
+      <article class="drama-card">
+        <h3>抉择一 · 队伍往哪走</h3>
+        <p class="q">从丁家埠（136 m）向斑竹园（220 m）转移，走河谷还是翻山？</p>
+        <button class="opt" type="button" data-v="甲案走河谷：路远 6.4 公里，但全程最高只到 343 米、累计爬升少 318 米，白天是坦途；夜里却是风险——河谷串着集镇，有民团、有耳目。">
+          <b>甲案 沿河谷与旧商道绕行</b>
+          <span class="st">23.4 km ｜ 最高 <i>343</i> m ｜ 累计爬升 <i>1215</i> m</span>
+        </button>
+        <button class="opt" type="button" data-v="乙案越岭直插：近 6.4 公里，代价是要翻过 462 米的山脊、多爬 318 米。付出的是体力，换来的是隐蔽——山脊上没有敌人，也没有目击者。">
+          <b>乙案 越岭直插</b>
+          <span class="st">16.9 km ｜ 最高 <i>462</i> m ｜ 累计爬升 <i>1533</i> m</span>
+        </button>
+        <div class="verdict">点一条路线，看它要付什么代价。</div>
+      </article>
+
+      <article class="drama-card">
+        <h3>抉择二 · 信号放哪里</h3>
+        <p class="q">起义信号（火光 / 号炮）该设在丁家埠周边的哪一处？</p>
+        <button class="opt" type="button" data-v="河谷平地：156 米，最近、最好集结，但视野最差——信号传不远，也看不清有谁摸过来。">
+          <b>史河河谷平地</b>
+          <span class="st">海拔 <i>156</i> m ｜ 与起义点同高</span>
+        </button>
+        <button class="opt" type="button" data-v="村后半丘：197 米，比村口高 60 米，隐蔽和视野各占一半，代价是两者都不彻底。">
+          <b>村后半丘</b>
+          <span class="st">海拔 <i>197</i> m ｜ 相对村口 <i>+60</i> m</span>
+        </button>
+        <button class="opt" type="button" data-v="东北山脊制高点：514 米，3 公里内最高，比丁家埠高 378 米。谁从河谷来、谁往山上撤，一眼看清；代价是夜里要负重爬 378 米，天亮前下不来就会被合围。">
+          <b>东北山脊制高点</b>
+          <span class="st">海拔 <i>514</i> m ｜ 3 km 内最高，<i>+378</i> m</span>
+        </button>
+        <div class="verdict">升得越高，看得越远，也越难撤。</div>
+      </article>
+
+      <article class="drama-card">
+        <h3>抉择三 · 往哪转移</h3>
+        <p class="q">起义得手后，队伍往哪个方向带走？</p>
+        <button class="opt" type="button" data-v="北上汤家汇：20.3 公里、最高只到 276 米、累计爬升 773 米，是三条里最省力的；但它落在史河上游宽谷（豫皖孔道），人烟密、耳目多，方向也与会师地相反。">
+          <b>北上汤家汇 · 史河上游宽谷</b>
+          <span class="st">20.3 km ｜ 最高 <i>276</i> m ｜ 爬升 <i>773</i> m</span>
+        </button>
+        <button class="opt" type="button" data-v="西出斑竹园：最短、最隐蔽，代价是 1533 米累计爬升。历史给出的答案正是这一条——不是因为它好走，而是因为那里是各路的会师点。">
+          <b>西出斑竹园 · 越岭</b>
+          <span class="st">16.9 km ｜ 最高 <i>462</i> m ｜ 爬升 <i>1533</i> m</span>
+        </button>
+        <div class="verdict">最好走的路，未必是走得通的路。</div>
+      </article>
+    </div>
+
+    <div class="drama-reveal">
+      <span class="rl">历 史 真 实</span>
+      <div>
+        <p>
+          史料里的答案不是「哪条路好走」，而是「哪条路能会师」：1929 年 5 月 9 日，各路起义队伍齐聚<b>斑竹园</b>，
+          宣布成立中国工农红军第十一军第三十二师，由地形上的分散隐蔽，转为一次集中的亮相。
+        </p>
+        <p>
+          说明：剧本为课程自编的沉浸式情境，三个抉择用于让学生用等高线做一次真实的权衡。
+          距离、最高点与累计爬升，均由 SRTM 高程数据沿真实道路或直线每 60 米取样计算，可复核。
+          史实依据：商南起义 1929 年 5 月 6 日爆发于商城南部（今金寨县境）；总指挥部旧址—穿石庙、首发地—大王庙，
+          均属全国重点文物保护单位「金寨革命旧址群」；5 月 9 日于斑竹园成立红十一军第三十二师。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="tasks">
+    <div class="sec-hd">
+      <div>
+        <p class="sec-kicker">行前 · 行中 · 行后</p>
+        <h2>任务卡：四类闯关</h2>
+      </div>
+      <p class="sec-sub">
+        同一个点位，四种进入方式：<b>先看历史，再读地理，然后演一遍，最后讲出来</b>。
+        地理任务不单独设"地理课"，而是嵌进每一次点位停留——到了就问一句「为什么是这里」。
+      </p>
+    </div>
+    <div class="tk-grid">
+      <article class="tk">
+        <span class="ico">🏛️</span>
+        <h3>历史任务</h3>
+        <p class="kind">看 · 记 · 查</p>
+        <ul>
+          <li>在博物馆找 3 位开国将军，写出他们的结局</li>
+          <li>记下立夏节起义的时间、地点与意义</li>
+          <li>回程能独立讲出 2 个金寨红色故事</li>
+        </ul>
+      </article>
+      <article class="tk hi">
+        <span class="ico">🗺️</span>
+        <h3>地理任务</h3>
+        <p class="kind">《为什么是这里？》</p>
+        <ul>
+          <li>工具：金寨地形水系图 + 大别山区行政区划图</li>
+          <li>每到一个点位，在地图上标出该点</li>
+          <li>用 1 句话回答「为什么革命选在这里」</li>
+        </ul>
+        <p class="badge">4 个点位 × 1 句话 = 4 句地理点睛，集齐可兑换「地理解码人」徽章</p>
+      </article>
+      <article class="tk">
+        <span class="ico">🎭</span>
+        <h3>演绎任务</h3>
+        <p class="kind">代入 · 抉择</p>
+        <ul>
+          <li>认领《穿石庙会议·立夏前夜》中的一个角色</li>
+          <li>在三个地理抉择里做出自己的判断</li>
+          <li>说出理由，再听历史怎么选</li>
+        </ul>
+      </article>
+      <article class="tk">
+        <span class="ico">✍️</span>
+        <h3>表达任务</h3>
+        <p class="kind">绘 · 讲</p>
+        <ul>
+          <li>绘出心中的红色金寨，配一句自己的解说</li>
+          <li>结营用四段式发言：见了什么 / 懂了什么 / 改了什么 / 要做什么</li>
+        </ul>
+      </article>
+    </div>
+    <p class="note-line"><b>提示：</b>地理任务的答案不唯一，能自圆其说即可——评判标准是「有没有用等高线和水系说话」，而不是背地形数据。</p>
+  </section>
+
+  <section class="sec" id="works">
+    <div class="sec-hd">
+      <div>
+        <p class="sec-kicker">研学成果 · 可展示 · 可带走</p>
+        <h2>成果展厅：地理视角作品</h2>
+      </div>
+      <p class="sec-sub">
+        研学结束后，每个小组至少交出一件「地理视角」作品。比起手抄报，这四类作品更能看出学生是不是真的读懂了这片山。
+      </p>
+    </div>
+    <div class="gal-grid">
+      <article class="gal">
+        <div class="thumb">手绘剖面图</div>
+        <div class="bd">
+          <h3>沿线地形剖面</h3>
+          <p>把梅山 → 丁家埠 → 汤家汇 的海拔变化画出来，在曲线上标出四个遗址——一眼看出它们都落在低处。</p>
+        </div>
+      </article>
+      <article class="gal">
+        <div class="thumb">翻转卡</div>
+        <div class="bd">
+          <h3>三重叠加卡</h3>
+          <p>正面写三层地理条件（缝隙 / 屏障 / 水系），翻面写它各自换来的革命结果（立得住 / 守得住 / 活得下去）。</p>
+        </div>
+      </article>
+      <article class="gal">
+        <div class="thumb">路线对比图</div>
+        <div class="bd">
+          <h3>路线对比图</h3>
+          <p>把 1929 年的转移方向，和今天的公路叠在同一张图上：同一段路，今天沿公路 79.6 公里、车程约 64 分钟，当年只有山道与河谷。</p>
+        </div>
+      </article>
+      <article class="gal">
+        <div class="thumb">一面墙</div>
+        <div class="bd">
+          <h3>金寨地理密码墙</h3>
+          <p>每人交 1 句地理点睛，全班拼成一面墙——用 30 句话，把「为什么是金寨」讲成一个班的答案。</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sec" id="pack">
+    <div class="sec-hd">
+      <div>
+        <p class="sec-kicker">我是老师 / 我是评审</p>
+        <h2>课程包与实施保障</h2>
+      </div>
+      <p class="sec-sub">
+        网站是这门课的地图册，真正的教案在课程方案里：2 天 1 夜、4 个研学点、30 人一批，
+        含预算、师资、安全预案与评价方式。<b>链接为本站自带文件，断网也能打开。</b>
+      </p>
+    </div>
+    <div class="pack">
+      <div>
+        <h3>课程方案 · 下载</h3>
+        <p><b>《多视角解密红色文化——大别山红色精神的学习与传承之金寨研学》</b></p>
+        <p>13 页完整方案，含课程背景、目标、内容、行程安排、教学方法与重难点、师资、安全保障、预算与评价。</p>
+        <a class="dl" href="materials/course-plan.pdf" download>↓ 下载课程方案 PDF</a>
+        <p style="margin:15px 0 0"><b>配套材料 · 可直接用于课件与打印</b></p>
+        <div>
+          <a class="dl2" href="basemaps/01-admin.png" download>① 行政缝隙</a>
+          <a class="dl2" href="basemaps/02-terrain.png" download>② 山地屏障</a>
+          <a class="dl2" href="basemaps/03-water.png" download>③ 淮河水系</a>
+          <a class="dl2" href="materials/design-note.docx" download>设计说明 Word</a>
+        </div>
+      </div>
+      <div>
+        <h3>师资与预算</h3>
+        <div class="kv"><span>每批学生</span><b>30 人</b></div>
+        <div class="kv"><span>本校教师</span><b>3 人</b></div>
+        <div class="kv"><span>当地讲解员</span><b>3～4 人</b></div>
+        <div class="kv"><span>高校师范生助教</span><b>6 人</b></div>
+        <div class="kv"><span>师生比</span><b>约 1 : 2.5</b></div>
+        <div class="kv"><span>学生端费用</span><b>410～463 元/人</b></div>
+        <div class="kv"><span>人均全成本</span><b>510～540 元/人</b></div>
+      </div>
+      <div>
+        <h3>安全与合规</h3>
+        <p><b>行前：</b>《研学安全预案》《突发事件处置流程图》《学生行为公约》家长学生双签；研学意外险 + 责任险全覆盖。</p>
+        <p><b>健康：</b>健康与特殊体质调查表，一人一档（血型、过敏史、监护人电话），有基础病者需知情同意。</p>
+        <p><b>行程：</b>合规客运车辆、一人一座、三次清点；定点餐厅留样 48 小时；标准间 2 人、夜间清楼。</p>
+        <p><b>剧本杀专项：</b>剧本报学校与组委会审核，聚焦信念抉择；设思政教师任观察员，开演前讲清「这是角色、不是现实」，必做复盘收束，全程 90 分钟内。</p>
+      </div>
+    </div>
+    <p class="note-line">
+      <b>页面定位：</b>本页是研学课程的「地图册 + 解码器」，用于学生行前预习、行中验证、行后创作，以及评审现场演示；
+      与课程方案 PDF 配合使用，不替代方案文本。
+    </p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <h5>数 据 来 源</h5>
+      <p>
+        地形：NASA SRTM via AWS Terrain Tiles（等高线、剖面、晕渲均由此生成）；<br>
+        行政区划：Natural Earth 1:10m 省界 + OpenStreetMap 金寨县界；<br>
+        水系与库区：OpenStreetMap（ODbL）河道，梅山 / 响洪甸库区水面由 DEM 平坦面反演；<br>
+        路线与里程：OSRM 公路路径规划，79.6 公里 / 约 64 分钟。
+      </p>
+    </div>
+    <div>
+      <h5>课 程 依 据</h5>
+      <p>「12 支红军」「59 位开国将军」「千米以上山峰 116 座」「28 年红旗不倒」等表述，引自本队课程方案《多视角解密红色文化——大别山红色精神的学习与传承之金寨研学》。</p>
+    </div>
+    <div>
+      <h5>图 片 来 源</h5>
+      <p class="credits">
+        大别山山脊（金寨县境内）、金寨站沿线 ×2、古碑镇沿线 ×2、天堂寨镇、天堂寨景区：Wikimedia Commons，CC BY-SA 3.0 / 4.0；
+        合武铁路：CC BY-SA 4.0。作者：Vmenkov、そらみみ、JtWang、Qa003qa003。
+        以上均为沿线氛围影像，非研学点位实拍。
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+.seg{display:flex;gap:6px;margin:-4px 0 14px}
+.seg button{border:1px solid var(--rule);background:#fff;color:var(--ink2);font-size:12.5px;padding:4px 11px;border-radius:2px;cursor:pointer}
+.seg button.on{border-color:var(--ink);color:var(--ink);background:#f3eee1}
+.insetTitle{font-family:var(--serif)}
+</style>
+<script src="map/data.js"></script>
+<script>
+(function(){
+"use strict";
+var D = window.DABIE, FR = D.frame, RWD = D.raster[0], RHD = D.raster[1];
+var MPP = D.mpp;
+
+/* ---------- 投影 ---------- */
+function nx(l){ return (l+180)/360; }
+function ny(l){ var r=l*Math.PI/180; return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2; }
+var X0=nx(FR[0]), X1=nx(FR[2]), Y0=ny(FR[3]), Y1=ny(FR[1]);
+function px(lon){ return (nx(lon)-X0)/(X1-X0)*RWD; }
+function py(lat){ return (ny(lat)-Y0)/(Y1-Y0)*RHD; }
+
+/* ---------- SVG 工具 ---------- */
+var NS="http://www.w3.org/2000/svg";
+function el(t,a){ var n=document.createElementNS(NS,t); for(var k in a){ if(a[k]!==null&&a[k]!==undefined) n.setAttribute(k,a[k]); } return n; }
+function pathOf(segs, close){
+  var d="";
+  for(var i=0;i<segs.length;i++){
+    var s=segs[i]; if(!s||s.length<2) continue;
+    d+="M"+px(s[0][0]).toFixed(1)+" "+py(s[0][1]).toFixed(1);
+    for(var j=1;j<s.length;j++) d+="L"+px(s[j][0]).toFixed(1)+" "+py(s[j][1]).toFixed(1);
+    if(close) d+="Z";
+  }
+  return d;
+}
+function polyOf(rings){
+  var d="";
+  for(var i=0;i<rings.length;i++){
+    var r=rings[i]; if(r.length<3) continue;
+    d+="M"+px(r[0][0]).toFixed(1)+" "+py(r[0][1]).toFixed(1);
+    for(var j=1;j<r.length;j++) d+="L"+px(r[j][0]).toFixed(1)+" "+py(r[j][1]).toFixed(1);
+    d+="Z";
+  }
+  return d;
+}
+
+/* ---------- 站点内容 ---------- */
+var SITES=[
+ {n:1,id:"museum",name:"金寨县革命博物馆",day:"第一天 08:20–10:40",elev:86,terrain:"梅山盆地 · 史河出山口河谷平地",
+  water:"史河（干流）",next:"0.44",
+  why:"史河在这里出山。山区的物资、人流、消息都在出山口汇集，才有聚落、才有县城。博物馆讲的三十年革命史，起点就是这么一条能养活人的河谷——先有人，才有革命的人。",
+  tasks:["集合签到，领取《大别山地区行政区划图》《金寨地形水系图》与任务卡","有序进馆，听讲解员走完主展线","带队老师结合地理与历史，多角度讲金寨红色文化"]},
+ {n:2,id:"square",name:"金寨红军广场",day:"第一天 14:00–17:00",elev:80,terrain:"梅山镇 · 史河左岸台地",
+  water:"史河（干流）",next:"58.8",
+  why:"纪念塔不建在河边低地，而建在俯瞰全城的台地上——精神高地和地形高地在这里重合了。从塔上往北看是淮河平原，往南看是层层叠叠的大别山，一眼就是这座县城全部的处境。",
+  tasks:["参观金寨三十年革命史露天纪念碑群","听老师讲：鄂豫皖革命根据地核心区如何从「星火」到「燎原」","绕塔一周，全体默哀"]},
+ {n:3,id:"dawang",name:"立夏节起义旧址（丁家埠大王庙）",day:"第二天 08:00–10:00",elev:138,terrain:"南溪镇丁家埠 · 河谷宽谷，三面低山",
+  water:"史河支流",next:"20.3",
+  why:"商道从村里穿过，民团就驻在庙里。三面低山、一路通河谷——这种地形既能藏人，又方便从内部下手。所以周维炯选的是「打进去」而不是「攻上来」，一夜智取，没放几枪。地形决定了打法。",
+  tasks:["大王庙前广场整队，观看起义雕塑","领取「立夏节起义」地点地图","听老师讲立夏节起义的故事","助教带学生自主分析：起义为什么发生在金寨"]},
+ {n:4,id:"tangjia",name:"汤家汇红色小镇",day:"第二天 10:00–12:00",elev:207,terrain:"汤家汇镇 · 史河上游宽谷（豫皖孔道）",
+  water:"史河支流",next:"—",
+  why:"北面金刚台挡着，脚下是史河上游的宽谷，河谷又是豫皖之间的通道——有屏障、有粮道、有进出的路。一个完整的苏维埃城能设在这里，靠的不是隐蔽，而是这个「既躲得进、又出得来」的位置。",
+  tasks:["探究：完整的苏维埃城为什么落在汤家汇（豫皖孔道 · 史河支流宽谷 · 金刚台屏障）","沿「七条线」进一步了解这片红色热土"]}
+];
+
+/* 把真实坐标与里程合并进来 */
+D.sites.forEach(function(ds){ SITES.forEach(function(s){ if(s.id===ds.id){ s.lon=ds.lon; s.lat=ds.lat; s.d_km=ds.d_km; } }); });
+
+var LAYERS={
+ admin:{name:"行政缝隙",line:"金寨卡在鄂豫皖三省的接缝上。古代行政的管辖末梢最容易出现「谁也管不到」的盲区，边缘地带反而成了革命组织生长的缝隙。"},
+ terrain:{name:"山地屏障",line:"大别山北麓横在金寨。全县千米以上山峰 116 座，最高天堂寨 1729.1 米，最低 59.5 米——1669.6 米的落差，进可攻、退可守。"},
+ water:{name:"淮河水系",line:"史河与西淠河切穿大别山，向北汇入淮河。水系是生命线、运输线，也是把山区群众串起来的动员纽带。"}
+};
+var COMBOS={
+ "admin":  "只有行政缝隙：三省交界的管辖末梢，是组织生长的空地——但只有空隙，还立不住。",
+ "terrain":"只有山地屏障：116 座千米山峰是天然堡垒，能藏、能守、能周旋——但只有山，养不活人。",
+ "water":  "只有淮河水系：史河把山外的物资和消息送进来、把山里的山货运出去——但只有水路，站不住脚。",
+ "admin,terrain":"<em>缝隙 + 屏障</em>：政权立得住，也守得住——这是鄂豫皖根据地能扎根的地形前提。",
+ "admin,water":  "<em>缝隙 + 水系</em>：组织在管辖末梢生长，靠水路养活、靠水流传信。",
+ "terrain,water":"<em>屏障 + 水系</em>：山挡住了敌人，河留住了人——游击与生存同时成立。",
+ "admin,terrain,water":"<em>三省交界让政权立得住 → 大别山让政权守得住 → 史河让政权活得下去 = 28 年红旗不倒。</em>"
+};
+
+/* ---------- 画地图 ---------- */
+var svg=document.getElementById("map");
+var g={ };
+["base","grat","admin","terrain","water","marks","chrome"].forEach(function(k){ g[k]=el("g",{}); svg.appendChild(g[k]); });
+g.grat.style.pointerEvents="none"; g.chrome.style.pointerEvents="none"; g.base.style.pointerEvents="none";
+
+g.base.appendChild(el("image",{href:"map/relief.jpg",x:0,y:0,width:RWD,height:RHD,preserveAspectRatio:"none"}));
+g.base.appendChild(el("rect",{x:0,y:0,width:RWD,height:RHD,fill:"url(#vign)"}));
+var defs=el("defs",{});
+defs.innerHTML='<radialGradient id="vign" cx="50%" cy="46%" r="72%"><stop offset="60%" stop-color="#f3eee1" stop-opacity="0"/><stop offset="100%" stop-color="#f3eee1" stop-opacity=".55"/></radialGradient>';
+svg.insertBefore(defs,svg.firstChild);
+
+/* 经纬网 */
+(function(){
+  var step=0.25, i, x, y;
+  for(var lon=FR[0]; lon<=FR[2]+1e-9; lon+=step){
+    x=px(lon); var major=Math.abs(lon*100%50)<1;
+    g.grat.appendChild(el("line",{x1:x,y1:0,x2:x,y2:RHD,stroke:"#6d6150","stroke-opacity":major?.20:.09,"stroke-width":major?1.1:0.7,"stroke-dasharray":"1 0","vector-effect":"non-scaling-stroke"}));
+    if(major) g.grat.appendChild(el("text",{x:x+5,y:30,fill:"#6d6150","font-size":25,"font-family":"var(--serif)"}, 0)).textContent=lon.toFixed(2)+"°E";
+  }
+  for(var lat=FR[1]; lat<=FR[3]+1e-9; lat+=step){
+    y=py(lat); var mj=Math.abs(lat*100%50)<1;
+    g.grat.appendChild(el("line",{x1:0,y1:y,x2:RWD,y2:y,stroke:"#6d6150","stroke-opacity":mj?.20:.09,"stroke-width":mj?1.1:0.7,"vector-effect":"non-scaling-stroke"}));
+    if(mj) g.grat.appendChild(el("text",{x:RWD-12,y:y-8,fill:"#6d6150","font-size":25,"text-anchor":"end","font-family":"var(--serif)"})).textContent=lat.toFixed(2)+"°N";
+  }
+})();
+
+/* 行政层 */
+(function(){
+  var p=pathOf(D.provinces,false);
+  g.admin.appendChild(el("path",{d:p,fill:"none",stroke:"#7a5c3a","stroke-width":1.6,"stroke-dasharray":"9 5","stroke-opacity":.85,"vector-effect":"non-scaling-stroke"}));
+  g.admin.appendChild(el("path",{d:polyOf(D.jinzhai),fill:"#a32b1c","fill-opacity":.07,stroke:"#a32b1c","stroke-width":2,"vector-effect":"non-scaling-stroke"}));
+})();
+
+/* 山地层 */
+(function(){
+  D.contours.forEach(function(c){
+    var major=(c.z%500===0), w=major?1.35:0.75;
+    g.terrain.appendChild(el("path",{d:pathOf(c.g,false),fill:"none",stroke:major?"#7d6742":"#a08f6c","stroke-width":w,"stroke-opacity":major?.78:.62,"vector-effect":"non-scaling-stroke","stroke-linejoin":"round"}));
+  });
+  D.peaks.slice(0,14).forEach(function(pk){
+    var x=px(pk[1]), y=py(pk[2]);
+    var s=9;
+    g.terrain.appendChild(el("path",{d:"M"+x+" "+(y-s)+"L"+(x-s*0.92)+" "+(y+s*0.72)+"L"+(x+s*0.92)+" "+(y+s*0.72)+"Z",fill:"#4a3d2a",stroke:"#fbf7ec","stroke-width":1.4,"vector-effect":"non-scaling-stroke"}));
+  });
+})();
+
+/* 水系层 */
+(function(){
+  (D.reservoirs||[]).forEach(function(r){
+    g.water.appendChild(el("path",{d:polyOf([r]),fill:"#8fb9d2","fill-opacity":.92,stroke:"#2f6b8f","stroke-width":1,"stroke-opacity":.7,"vector-effect":"non-scaling-stroke"}));
+  });
+  (D.lakes||[]).forEach(function(l){
+    l.g.forEach(function(r){ g.water.appendChild(el("path",{d:polyOf([r]),fill:"#9fc3d8","fill-opacity":.75,stroke:"#2f6b8f","stroke-width":.6,"stroke-opacity":.5,"vector-effect":"non-scaling-stroke"})); });
+  });
+  var major={"史河":1,"西淠河":1,"淠河":1,"东淠河":1,"灌河":1,"白水河":1,"小史河":1,"巴河":1,"竹竿河":1};
+  (D.rivers||[]).forEach(function(r){
+    var big=major[r.n]||0;
+    var d=pathOf(r.g,false);
+    if(!d) return;
+    if(big){
+      g.water.appendChild(el("path",{d:d,fill:"none",stroke:"#fbf7ec","stroke-width":4.6,"stroke-opacity":.85,"vector-effect":"non-scaling-stroke"}));
+      g.water.appendChild(el("path",{d:d,fill:"none",stroke:"#2f6b8f","stroke-width":2.1,"vector-effect":"non-scaling-stroke","stroke-linejoin":"round"}));
+    }else{
+      g.water.appendChild(el("path",{d:d,fill:"none",stroke:"#6fa0bd","stroke-width":0.9,"stroke-opacity":.72,"vector-effect":"non-scaling-stroke"}));
+    }
+  });
+})();
+
+/* 标注 */
+(function(){
+  var S={"prov":{s:31,f:"600",c:"#7a5c3a",sp:8},"county":{s:30,f:"600",c:"#8a3a24",sp:6},
+        "town":{s:22,f:"500",c:"#5c5140",sp:0},"peak":{s:24,f:"600",c:"#4a3d2a",sp:0},
+        "water":{s:24,f:"500",c:"#2b6484",sp:0},"river":{s:23,f:"500",c:"#2f6b8f",sp:0},
+        "plain":{s:27,f:"500",c:"#8f866f",sp:0},
+        "village":{s:19,f:"400",c:"#6d6150",sp:0}};
+  S.plain.c="#8f866f";
+  var OFF={"梅山镇":{dx:-46,dy:8,a:"end"},"汤家汇镇":{dx:-34,dy:-20,a:"end"},"南溪镇":{dx:-10,dy:24,a:"middle"},"大湾村":{dx:0,dy:6,a:"middle"}};
+  D.labels.forEach(function(l){
+    var st=S[l.s]||S.town, o=OFF[l.t];
+    var txt=el("text",{x:px(l.lon)+(o?o.dx:0),y:py(l.lat)+(o?o.dy:0),fill:st.c,"font-size":st.s,"font-weight":st.f,"text-anchor":o?o.a:"middle","font-family":"var(--serif)","letter-spacing":st.sp,stroke:"#fbf7ec","stroke-width":5,"stroke-opacity":.85,"paint-order":"stroke"});
+    txt.textContent=l.t; g.marks.appendChild(txt);
+  });
+})();
+
+/* 路线 + 点位 */
+var siteXY=[];
+(function(){
+  var pts=D.route.map(function(p){ return [px(p[0]),py(p[1])]; });
+  var d="M"+pts.map(function(p){return p[0].toFixed(1)+" "+p[1].toFixed(1);}).join("L");
+  g.marks.appendChild(el("path",{d:d,fill:"none",stroke:"#fbf7ec","stroke-width":7,"stroke-opacity":.9,"stroke-linejoin":"round","stroke-linecap":"round","vector-effect":"non-scaling-stroke"}));
+  g.marks.appendChild(el("path",{d:d,fill:"none",stroke:"#a32b1c","stroke-width":2.8,"stroke-dasharray":"12 7","stroke-linejoin":"round","stroke-linecap":"round","vector-effect":"non-scaling-stroke"}));
+  /* 主图上梅山两站并为一点（相距仅 460 m） */
+  var cluster=null;
+  SITES.forEach(function(s,i){
+    var x=px(s.lon), y=py(s.lat); siteXY.push([x,y]);
+    if(i<2){ if(!cluster) cluster=[x,y]; return; }
+  });
+  var nodes=[{x:cluster[0],y:cluster[1],label:"①②",ids:["museum","square"],sm:true}];
+  for(var i=2;i<SITES.length;i++){ nodes.push({x:siteXY[i][0],y:siteXY[i][1],label:String(SITES[i].n),ids:[SITES[i].id],sm:false}); }
+  window.__nodes=nodes;
+  nodes.forEach(function(nd){
+    var grp=el("g",{class:"mk",tabindex:"0",role:"button","data-ids":nd.ids.join(",")});
+    grp.appendChild(el("circle",{class:"ring",cx:nd.x,cy:nd.y,r:nd.sm?26:22,fill:"#a32b1c",stroke:"#fbf7ec","stroke-width":2.6,"vector-effect":"non-scaling-stroke"}));
+    var t=el("text",{x:nd.x,y:nd.y+9,"text-anchor":"middle",fill:"#fbf7ec","font-size":nd.sm?24:23,"font-weight":600,"font-family":"var(--sans)"});
+    t.textContent=nd.label; grp.appendChild(t);
+    grp.addEventListener("click",function(){ openNode(nd); });
+    grp.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openNode(nd);} });
+    g.marks.appendChild(grp);
+    nd.g=grp;
+  });
+  /* 梅山镇引出线 -> 详图 */
+  var box=[1636,60,2128,392];
+  g.chrome.appendChild(el("path",{d:"M"+cluster[0]+" "+cluster[1]+"L"+box[0]+" "+box[1],fill:"none",stroke:"#a32b1c","stroke-width":1.2,"stroke-dasharray":"6 4","vector-effect":"non-scaling-stroke"}));
+  renderInset(box, cluster);
+})();
+/* ---------- 内嵌详图 ---------- */
+function renderInset(box, cluster){
+  var f=D.inset.frame, iw=D.inset.raster[0], ih=D.inset.raster[1];
+  function IP(lon,lat){ return [box[0]+(lon-f[0])/(f[2]-f[0])*box[2], box[1]+(f[3]-lat)/(f[3]-f[1])*box[3]]; }
+  var gI=el("g",{});
+  gI.appendChild(el("rect",{x:box[0]-1,y:box[1]-1,width:box[2]+2,height:box[3]+2,fill:"#fbf7ec",stroke:"#332a1e","stroke-width":1.4,"vector-effect":"non-scaling-stroke"}));
+  gI.appendChild(el("image",{href:"map/inset.jpg",x:box[0],y:box[1],width:box[2],height:box[3],preserveAspectRatio:"none"}));
+  /* 详图等高线 */
+  (D.inset_contours||[]).forEach(function(c){
+    var major=(c.z%100===0), d="";
+    c.g.forEach(function(s){
+      d+="M";
+      for(var i=0;i<s.length;i++){ var p=IP(s[i][0],s[i][1]); d+=(i?"L":"")+p[0].toFixed(1)+" "+p[1].toFixed(1); }
+    });
+    gI.appendChild(el("path",{d:d,fill:"none",stroke:major?"#7d6742":"#a08f6c","stroke-width":major?0.9:0.6,"stroke-opacity":major?.6:.45,"vector-effect":"non-scaling-stroke"}));
+  });
+  /* 详图水系 */
+  (D.inset_rivers||[]).forEach(function(r){
+    var major=!!({"史河":1,"小史河":1})[r.n];
+    r.g.forEach(function(s){
+      var d="";
+      for(var i=0;i<s.length;i++){ var p=IP(s[i][0],s[i][1]); d+=(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1); }
+      if(major){
+        gI.appendChild(el("path",{d:d,fill:"none",stroke:"#fbf7ec","stroke-width":3.4,"stroke-opacity":.9,"vector-effect":"non-scaling-stroke"}));
+        gI.appendChild(el("path",{d:d,fill:"none",stroke:"#2f6b8f","stroke-width":1.7,"vector-effect":"non-scaling-stroke"}));
+      }else{
+        gI.appendChild(el("path",{d:d,fill:"none",stroke:"#6fa0bd","stroke-width":0.9,"stroke-opacity":.7,"vector-effect":"non-scaling-stroke"}));
+      }
+    });
+  });
+  /* 详图两点 */
+  [SITES[0],SITES[1]].forEach(function(s,i){
+    var p=IP(s.lon,s.lat);
+    gI.appendChild(el("circle",{cx:p[0],cy:p[1],r:13,fill:"#a32b1c",stroke:"#fbf7ec","stroke-width":2.2,"vector-effect":"non-scaling-stroke"}));
+    var t=el("text",{x:p[0],y:p[1]+5,"text-anchor":"middle",fill:"#fbf7ec","font-size":15,"font-weight":600});
+    t.textContent=i?"②":"①"; gI.appendChild(t);
+    var lb=el("text",{x:p[0]+18,y:p[1]+(i?-13:6),fill:"#332a1e","font-size":16,"font-family":"var(--serif)",stroke:"#fbf7ec","stroke-width":4,"paint-order":"stroke"});
+    lb.textContent=(i?"② ":"① ")+s.name.replace("金寨县","").replace("金寨",""); gI.appendChild(lb);
+  });
+  /* 台头与比例尺 */
+  gI.appendChild(el("rect",{x:box[0],y:box[1],width:box[2],height:34,fill:"#332a1e","fill-opacity":.86}));
+  var tt=el("text",{class:"insetTitle",x:box[0]+12,y:box[1]+23,fill:"#f7f2e6","font-size":17,"font-weight":600});
+  tt.textContent="梅山镇区详图 · 放大 4.9 倍"; gI.appendChild(tt);
+  var kmv=2000/((f[2]-f[0])*111320*Math.cos(31.686*Math.PI/180)/box[2]);
+  var bx=box[0]+12, by=box[1]+box[3]-16;
+  gI.appendChild(el("rect",{x:bx,y:by,width:kmv,height:7,fill:"#332a1e",stroke:"#fbf7ec","stroke-width":1,"vector-effect":"non-scaling-stroke"}));
+  gI.appendChild(el("rect",{x:bx,y:by,width:kmv/2,height:7,fill:"#fbf7ec",stroke:"#332a1e","stroke-width":1,"vector-effect":"non-scaling-stroke"}));
+  var st=el("text",{x:bx+kmv+7,y:by+7,fill:"#332a1e","font-size":14,"stroke":"#fbf7ec","stroke-width":3.5,"paint-order":"stroke"});
+  st.textContent="2 km"; gI.appendChild(st);
+  g.chrome.appendChild(gI);
+}
+
+/* ---------- 图廓 · 比例尺 · 指北针 · 图例 · 注记 ---------- */
+(function(){
+  var c=g.chrome;
+  c.appendChild(el("rect",{x:6,y:6,width:RWD-12,height:RHD-12,fill:"none",stroke:"#332a1e","stroke-width":3,"vector-effect":"non-scaling-stroke"}));
+  c.appendChild(el("rect",{x:15,y:15,width:RWD-30,height:RHD-30,fill:"none",stroke:"#332a1e","stroke-width":1,"vector-effect":"non-scaling-stroke"}));
+  /* 标题块 */
+  c.appendChild(el("rect",{x:36,y:36,width:520,height:104,fill:"#fbf7ec",stroke:"#332a1e","stroke-width":1.2,"vector-effect":"non-scaling-stroke"}));
+  var t1=el("text",{x:56,y:78,fill:"#332a1e","font-size":34,"font-weight":600,"font-family":"var(--serif)"}); t1.textContent="金寨县研学地图"; c.appendChild(t1);
+  var t2=el("text",{id:"scaleNote",x:56,y:110,fill:"#6d6150","font-size":19,"font-family":"var(--serif)"}); c.appendChild(t2);
+  /* 比例尺条 */
+  var u=20000/MPP, sx=RWD-40-u*3, sy=RHD-56;
+  c.appendChild(el("rect",{x:sx,y:sy,width:u*3,height:9,fill:"#fbf7ec",stroke:"#332a1e","stroke-width":1.2,"vector-effect":"non-scaling-stroke"}));
+  c.appendChild(el("rect",{x:sx,y:sy,width:u,height:9,fill:"#332a1e"}));
+  c.appendChild(el("rect",{x:sx+u*2,y:sy,width:u,height:9,fill:"#332a1e"}));
+  [0,20,40,60].forEach(function(k){
+    var x=sx+u*(k/20);
+    var t=el("text",{x:x,y:sy-8,fill:"#332a1e","font-size":18,"text-anchor":"middle","stroke":"#fbf7ec","stroke-width":3.5,"paint-order":"stroke"});
+    t.textContent=k; c.appendChild(t);
+  });
+  var tu=el("text",{x:sx+u*3,y:sy+26,fill:"#332a1e","font-size":18,"text-anchor":"end","stroke":"#fbf7ec","stroke-width":3.5,"paint-order":"stroke"}); tu.textContent="公里"; c.appendChild(tu);
+  /* 指北针 */
+  var nx0=100, ny0=222;
+  c.appendChild(el("path",{d:"M"+nx0+" "+(ny0-30)+"L"+(nx0-16)+" "+(ny0+26)+"L"+nx0+" "+(ny0+12)+"L"+(nx0+16)+" "+(ny0+26)+"Z",fill:"#332a1e"}));
+  var tn=el("text",{x:nx0,y:ny0+52,fill:"#332a1e","font-size":20,"text-anchor":"middle","font-weight":600,"stroke":"#fbf7ec","stroke-width":3.5,"paint-order":"stroke"}); tn.textContent="N"; c.appendChild(tn);
+  /* 图例 */
+  var LX=36, LY=RHD-236;
+  c.appendChild(el("rect",{x:LX,y:LY,width:266,height:200,fill:"#fbf7ec",stroke:"#332a1e","stroke-width":1.2,"vector-effect":"non-scaling-stroke"}));
+  var lt=el("text",{x:LX+16,y:LY+30,fill:"#332a1e","font-size":19,"letter-spacing":4,"font-family":"var(--serif)"});
+  lt.setAttribute("letter-spacing",4); lt.textContent="图 例"; c.appendChild(lt);
+  var rows=[["研学路线（79.6 km）","dash"],["研学点位 ①②③④","dot"],["省界（鄂 / 豫 / 皖）","prov"],["县界（金寨县）","county"],["等高线 100–1500 m","cont"],["河道 / 库区水面","water"]];
+  rows.forEach(function(r,i){
+    var y=LY+58+i*24;
+    if(r[1]==="dash") c.appendChild(el("path",{d:"M"+(LX+16)+" "+y+"L"+(LX+58)+" "+y,stroke:"#a32b1c","stroke-width":2.6,"stroke-dasharray":"9 5","vector-effect":"non-scaling-stroke","fill":"none"}));
+    else if(r[1]==="dot") c.appendChild(el("circle",{cx:LX+37,cy:y,r:8,fill:"#a32b1c"}));
+    else if(r[1]==="prov") c.appendChild(el("path",{d:"M"+(LX+16)+" "+y+"L"+(LX+58)+" "+y,stroke:"#7a5c3a","stroke-width":1.6,"stroke-dasharray":"8 4","vector-effect":"non-scaling-stroke","fill":"none"}));
+    else if(r[1]==="county") c.appendChild(el("path",{d:"M"+(LX+16)+" "+y+"L"+(LX+58)+" "+y,stroke:"#a32b1c","stroke-width":2.4,"vector-effect":"non-scaling-stroke","fill":"none"}));
+    else if(r[1]==="cont") c.appendChild(el("path",{d:"M"+(LX+16)+" "+y+"L"+(LX+58)+" "+y,stroke:"#7d6742","stroke-width":1.4,"vector-effect":"non-scaling-stroke","fill":"none"}));
+    else c.appendChild(el("path",{d:"M"+(LX+16)+" "+y+"L"+(LX+58)+" "+y,stroke:"#2f6b8f","stroke-width":2.4,"vector-effect":"non-scaling-stroke","fill":"none"}));
+    var t=el("text",{x:LX+68,y:y+6,fill:"#4a4030","font-size":17});
+    t.textContent=r[0]; c.appendChild(t);
+  });
+  /* 数据来源 */
+  var sr=el("text",{x:56,y:172,fill:"#6d6150","font-size":16});
+  sr.textContent="高程 SRTM · 边界 Natural Earth / OSM · 路线 OSRM"; c.appendChild(sr);
+})();
+
+/* ---------- 动态比例尺读数 ---------- */
+(function(){
+  var note=document.getElementById("scaleNote"), svgEl=document.getElementById("map");
+  function upd(){
+    var w=svgEl.getBoundingClientRect().width; if(!w) return;
+    var mPerPx=(FR[2]-FR[0])*111320*Math.cos(((FR[1]+FR[3])/2)*Math.PI/180)/w;
+    var kmPerCm=mPerPx*37.795/1000;
+    note.textContent="全域图 · 金寨县 3918.96 km² · 当前 1 厘米 ≈ "+kmPerCm.toFixed(1)+" 公里";
+  }
+  window.addEventListener("resize",upd); upd();
+  setTimeout(upd,300);
+})();
+
+/* ---------- 图层开关 ---------- */
+var active={admin:true,terrain:true,water:true};
+var insight=document.getElementById("insight"), insightText=document.getElementById("insightText");
+function applyLayers(){
+  g.admin.style.display=active.admin?"":"none";
+  g.terrain.style.display=active.terrain?"":"none";
+  g.water.style.display=active.water?"":"none";
+  var keys=Object.keys(active).filter(function(k){return active[k];}).sort();
+  var txt;
+  if(keys.length===0){
+    insightText.innerHTML="三层全部关掉，地图只剩地形本身——金寨从哪里来，就要一层一层叠回去。";
+  }else{ txt=COMBOS[keys.join(",")]; insightText.innerHTML=txt; }
+}
+document.querySelectorAll(".tog").forEach(function(b){
+  b.addEventListener("click",function(){
+    var k=b.dataset.layer, on=b.getAttribute("aria-pressed")==="true";
+    active[k]=!on; b.setAttribute("aria-pressed",String(!on));
+    applyLayers();
+    if(!hintSeen){ hintSeen=true; setTimeout(function(){document.getElementById("hint").classList.remove("on");},1200); }
+  });
+});
+applyLayers();
+var hintSeen=false;
+var hintEl=document.getElementById("hint");
+hintEl.classList.add("on");
+setTimeout(function(){ hintEl.classList.remove("on"); },4800);
+
+/* ---------- 点位卡 ---------- */
+var card=document.getElementById("card"), cardNo=document.getElementById("cardNo"),
+    cardName=document.getElementById("cardName"), cardGrid=document.getElementById("cardGrid"),
+    cardWhy=document.getElementById("cardWhy"), cardTasks=document.getElementById("cardTasks");
+var currentIds=[], currentIdx=0;
+function fillCard(s){
+  cardNo.textContent="第 "+s.n+" 站 ｜ "+s.day;
+  cardName.textContent=s.name;
+  cardGrid.innerHTML=
+    "<dt>海拔</dt><dd>"+s.elev+"<span class='u'>m</span></dd>"+
+    "<dt>地形</dt><dd>"+s.terrain+"</dd>"+
+    "<dt>最近水系</dt><dd>"+s.water+"</dd>"+
+    "<dt>到下一站</dt><dd>"+(s.next==="—"?"—":"约 "+s.next+"<span class='u'>km</span>")+"</dd>";
+  cardWhy.textContent=s.why;
+  cardTasks.innerHTML=s.tasks.map(function(t){return "<li>"+t+"</li>";}).join("");
+}
+function showSite(id){
+  var s=SITES.filter(function(x){return x.id===id;})[0];
+  if(!s) return;
+  fillCard(s);
+  var seg=document.getElementById("cardSeg");
+  if(seg){ seg.querySelectorAll("button").forEach(function(b,ix){ b.classList.toggle("on",ix===currentIdx); }); }
+}
+function openNode(nd){
+  currentIds=nd.ids.slice(); currentIdx=0;
+  var seg=document.getElementById("cardSeg");
+  if(seg) seg.remove();
+  if(currentIds.length>1){
+    seg=document.createElement("div"); seg.className="seg"; seg.id="cardSeg";
+    currentIds.forEach(function(id,ix){
+      var b=document.createElement("button");
+      b.textContent="第 "+(ix+1)+" 站"; b.className=ix===0?"on":"";
+      b.addEventListener("click",function(){ currentIdx=ix; showSite(id); });
+      seg.appendChild(b);
+    });
+    card.querySelector(".body").insertBefore(seg, card.querySelector(".grid"));
+  }
+  showSite(currentIds[0]);
+  card.classList.add("on"); card.setAttribute("aria-hidden","false");
+  document.querySelectorAll(".mk").forEach(function(m){ m.classList.toggle("active", m.dataset.ids===currentIds.join(",")); });
+  if(window.__itinSync) window.__itinSync(currentIds.join(","));
+  if(window.__hl) window.__hl(currentIds[0]);
+}
+function closeCard(){
+  card.classList.remove("on"); card.setAttribute("aria-hidden","true");
+  document.querySelectorAll(".mk").forEach(function(m){ m.classList.remove("active"); });
+  if(window.__itinSync) window.__itinSync(null);
+  if(window.__hl) window.__hl(null);
+}
+document.getElementById("cardClose").addEventListener("click",closeCard);
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeCard(); });
+
+/* ---------- 剖面 ---------- */
+(function(){
+  var sv=document.getElementById("profile"), W=1000,H=210, L=52,R=16,T=24,B=40;
+  var P=D.profile, tot=P[P.length-1].d, EMAX=600;
+  var xs=function(d){ return L+(d/tot)*(W-L-R); };
+  var ys=function(e){ return H-B-(e/EMAX)*(H-B-T); };
+  for(var e=0;e<=EMAX;e+=200){
+    sv.appendChild(el("line",{x1:L,y1:ys(e),x2:W-R,y2:ys(e),stroke:"#c8bca3","stroke-width":1,"stroke-dasharray":e?"3 4":"0","vector-effect":"non-scaling-stroke"}));
+    var t=el("text",{x:L-10,y:ys(e)+5,fill:"#9a8f7b","font-size":12,"text-anchor":"end"}); t.textContent=e; sv.appendChild(t);
+  }
+  var tu=el("text",{x:L-10,y:T-8,fill:"#9a8f7b","font-size":11,"text-anchor":"end"}); tu.textContent="海拔 m"; sv.appendChild(tu);
+  var d1="M"+xs(P[0].d).toFixed(1)+" "+ys(P[0].e).toFixed(1);
+  P.forEach(function(p){ d1+="L"+xs(p.d).toFixed(1)+" "+ys(p.e).toFixed(1); });
+  var d2=d1+"L"+xs(tot).toFixed(1)+" "+ys(0)+"L"+xs(0).toFixed(1)+" "+ys(0)+"Z";
+  sv.appendChild(el("path",{d:d2,fill:"#c9bda4","fill-opacity":.45,stroke:"none"}));
+  sv.appendChild(el("path",{d:d1,fill:"none",stroke:"#a32b1c","stroke-width":1.6,"vector-effect":"non-scaling-stroke","stroke-linejoin":"round"}));
+  /* 站点标记 */
+  function elevAt(dd){
+    var best=P[0], bd=1e9;
+    for(var i=0;i<P.length;i++){ var k=Math.abs(P[i].d-dd); if(k<bd){bd=k;best=P[i];} }
+    return best.e;
+  }
+  var stops=[
+    {d:0.22,  no:"①②", name:"梅山镇 · 博物馆 / 红军广场", elev:86,  anchor:"start",  dx:4},
+    {d:59.25, no:"③",  name:"丁家埠大王庙",              elev:138, anchor:"middle", dx:0},
+    {d:79.52, no:"④",  name:"汤家汇红色小镇",            elev:207, anchor:"end",    dx:4}
+  ];
+  stops.forEach(function(st){
+    var x=xs(st.d), y=ys(st.elev);
+    sv.appendChild(el("line",{x1:x,y1:y,x2:x,y2:H-B,stroke:"#332a1e","stroke-width":1,"stroke-dasharray":"3 3","stroke-opacity":.5,"vector-effect":"non-scaling-stroke"}));
+    sv.appendChild(el("circle",{cx:x,cy:y,r:4.5,fill:"#a32b1c",stroke:"#fbf7ec","stroke-width":1.6,"vector-effect":"non-scaling-stroke"}));
+    var anc=st.anchor, dx=st.dx;
+    var t1=el("text",{x:x+dx,y:y-22,fill:"#332a1e","font-size":12.5,"font-weight":600,"text-anchor":anc,"font-family":"var(--serif)",stroke:"#faf7ee","stroke-width":3.4,"stroke-opacity":.92,"paint-order":"stroke"});
+    t1.textContent=st.no+" "+st.name; sv.appendChild(t1);
+    var t2=el("text",{x:x+dx,y:y-9,fill:"#6d6150","font-size":11,"text-anchor":anc,stroke:"#faf7ee","stroke-width":3.2,"stroke-opacity":.92,"paint-order":"stroke"});
+    t2.textContent=st.elev+" m"; sv.appendChild(t2);
+  });
+  /* 游标 */
+  var cur=el("line",{x1:L,y1:T,x2:L,y2:H-B,stroke:"#a32b1c","stroke-width":1,"vector-effect":"non-scaling-stroke"});
+  var dot=el("circle",{cx:L,cy:0,r:3.5,fill:"#a32b1c"});
+  sv.appendChild(cur); sv.appendChild(dot);
+  var mapDot=el("circle",{cx:0,cy:0,r:15,fill:"none",stroke:"#a32b1c","stroke-width":2.6,"stroke-dasharray":"4 3","vector-effect":"non-scaling-stroke"});
+  mapDot.style.display="none"; g.chrome.appendChild(mapDot);
+  var rKm=document.getElementById("rKm"), rEl=document.getElementById("rEl"), rSt=document.getElementById("rSt");
+  function move(ev){
+    var r=sv.getBoundingClientRect();
+    var vx=((ev.clientX-r.left)/r.width)*W;
+    var d=Math.max(0,Math.min(1,(vx-L)/(W-L-R)))*tot;
+    var best=P[0], bd=1e9;
+    for(var i=0;i<P.length;i++){ var dd=Math.abs(P[i].d-d); if(dd<bd){bd=dd;best=P[i];} }
+    var x=xs(best.d), y=ys(best.e);
+    cur.setAttribute("x1",x); cur.setAttribute("x2",x);
+    dot.setAttribute("cx",x); dot.setAttribute("cy",y);
+    rKm.textContent=best.d.toFixed(1); rEl.textContent=best.e;
+    var near=SITES[0], nd=1e9;
+    SITES.forEach(function(s){ var k=Math.abs(s.d_km-best.d); if(k<nd){nd=k;near=s;} });
+    rSt.textContent=near.name.length>10?near.name.slice(0,10)+"…":near.name;
+    mapDot.setAttribute("cx",px(best.lon)); mapDot.setAttribute("cy",py(best.lat));
+    mapDot.style.display="";
+  }
+  var dragging=false;
+  sv.addEventListener("pointerdown",function(e){ dragging=true; sv.setPointerCapture(e.pointerId); move(e); });
+  sv.addEventListener("pointermove",function(e){ if(dragging) move(e); });
+  sv.addEventListener("pointerup",function(){ dragging=false; });
+  sv.addEventListener("pointercancel",function(){ dragging=false; });
+  window.__hl=function(id){
+    if(!id){ mapDot.style.display="none"; return; }
+    var s=SITES.filter(function(x){return x.id===id;})[0]; if(!s) return;
+    mapDot.setAttribute("cx",px(s.lon)); mapDot.setAttribute("cy",py(s.lat)); mapDot.style.display="";
+  };
+})();
+
+/* ---------- 行程一览 ---------- */
+(function(){
+  var box=document.getElementById("itinGrid"); if(!box) return;
+  var marks=["①","②","③","④"];
+  var nodes=window.__nodes||[];
+  function keyOf(id){
+    var nd=nodes.filter(function(n){ return n.ids.indexOf(id)>=0; })[0];
+    return nd?nd.ids.join(","):id;
+  }
+  function go(key){
+    var nd=nodes.filter(function(n){ return n.ids.join(",")===key; })[0];
+    if(!nd) return;
+    openNode(nd);
+    if(!window.matchMedia("(max-width:1080px)").matches){
+      var st=document.querySelector(".stage"), tb=document.querySelector(".topbar");
+      window.scrollTo({top:st.getBoundingClientRect().top+window.scrollY-tb.getBoundingClientRect().height-14,behavior:"smooth"});
+    }
+  }
+  SITES.forEach(function(s,i){
+    var key=keyOf(s.id);
+    var b=document.createElement("button");
+    b.type="button"; b.className="itin-card"; b.dataset.key=key;
+    var nextTxt=(s.next==="—")?"—":("约 "+s.next+" km");
+    b.innerHTML=
+      '<span class="top"><span class="badge">'+marks[i]+'</span><span class="when">'+s.day+'</span></span>'+
+      "<h3>"+s.name+"</h3>"+
+      '<span class="meta"><span>海拔 <b>'+s.elev+'</b> m</span><span>到下一站 <b>'+nextTxt+"</b></span></span>"+
+      '<span class="terr">'+s.terrain+"</span>";
+    b.addEventListener("click",function(){ go(key); });
+    box.appendChild(b);
+  });
+  window.__itinSync=function(key){
+    box.querySelectorAll(".itin-card").forEach(function(c){ c.classList.toggle("on", c.dataset.key===key); });
+  };
+})();
+
+/* ---------- 地理解码器 ---------- */
+(function(){
+  var bar=document.getElementById("decbar"); if(!bar) return;
+  var narr=document.getElementById("decnarr");
+  var noEl=document.getElementById("decNo"), tEl=document.getElementById("decT"),
+      sEl=document.getElementById("decS"), dEl=document.getElementById("decD"),
+      moreEl=document.getElementById("decMore"), goEl=document.getElementById("decGo"),
+      pEl=document.getElementById("decP"), playBtn=document.getElementById("decPlay"),
+      resetBtn=document.getElementById("decReset");
+  var steps=[].slice.call(document.querySelectorAll(".dstep"));
+  var ORDER=["admin","terrain","water"];
+  var TXT={
+    admin:{no:"第 一 层",t:"行政缝隙",s:"安徽、河南、湖北在这里接缝——省界是管辖的末梢，谁也管不到。",open:"展开：这一层为什么重要？",
+      d:"金寨介于北纬 31°06′–31°48′、东经 115°22′–116°11′ 之间，是鄂豫皖三省交界处。省界不是一堵墙，而是三层政府各自推诿的末梢：山高路远、政令不达。土地革命时期，这里成了敌人「围剿」最难协调的地方——三省会剿要三省同时动手，缝隙本身就是生存空间。"},
+    terrain:{no:"第 二 层",t:"山地屏障",s:"千米以上山峰 116 座，主峰天堂寨 1729.1 米——山就是天然堡垒。",open:"展开：这一层为什么重要？",
+      d:"全县最低处仅 59.5 米，主峰天堂寨 1729.1 米，相对高差 1669.6 米，地势自西南向东北呈阶梯状下降。易守难攻、进可攻退可守：红军把主力放在高处的游击区，敌人的重武器和补给线却要爬坡——地形本身就是战斗力。"},
+    water:{no:"第 三 层",t:"淮河水系",s:"史河、西淠河自南向北汇入淮河——河谷既是生命线，也是运输线和动员纽带。",open:"展开：这一层为什么重要？",
+      d:"河谷有三重身份：生命线（人、粮、盐）、运输线（山货出、物资进）、群众动员纽带（沿河的集镇与村庄串成一条线）。所以四个研学点全部落在 80–207 米的河谷平地与宽谷里——低处聚人、建政、屯粮，高处只用来隐蔽和游击。"},
+    all:{no:"叠 加 结 论",t:"28 年红旗不倒",s:"三层叠满：这块地方同时满足「管不到、守得住、活得下去」——革命选中金寨，不是偶然。",open:"展开：三层为什么是递进的？",
+      d:"三层条件不是并列的，而是递进的：先有一块管不住的缝隙可以扎根，再有一圈山可以守住，最后有一条河谷可以养活。少任何一层，28 年都撑不下来。"}
+  };
+  var timers=[];
+  function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+  function setLayers(o){
+    ORDER.forEach(function(k){ active[k]=!!o[k]; });
+    document.querySelectorAll(".tog").forEach(function(b){ b.setAttribute("aria-pressed", active[b.dataset.layer]?"true":"false"); });
+    applyLayers();
+  }
+  function show(key){
+    var x=TXT[key]; if(!x) return;
+    noEl.textContent=x.no; tEl.textContent=x.t; sEl.textContent=x.s; dEl.textContent=x.d;
+    narr.classList.remove("open"); moreEl.textContent=x.open;
+    narr.classList.add("on");
+    goEl.hidden=(key!=="all");
+    var idx=ORDER.indexOf(key);
+    steps.forEach(function(b,i){ b.classList.toggle("on",i===idx); b.classList.toggle("done", idx>=0&&i<idx); });
+  }
+  function mark(on){ playBtn.disabled=on; playBtn.textContent=on?"解 码 中…":"▶ 开始解码"; }
+  function play(){
+    clearTimers(); mark(true); narr.classList.remove("on");
+    setLayers({admin:false,terrain:false,water:false});
+    pEl.innerHTML="正在逐层叠加：<b>行政缝隙 → 山地屏障 → 淮河水系</b>。";
+    [["admin",320],["terrain",3000],["water",5700],["all",8400]].forEach(function(s){
+      timers.push(setTimeout(function(){
+        if(s[0]==="all"){ setLayers({admin:true,terrain:true,water:true}); }
+        else { var i=ORDER.indexOf(s[0]), o={}; ORDER.forEach(function(k,j){ o[k]=j<=i; }); setLayers(o); }
+        show(s[0]);
+        if(s[0]==="all"){ mark(false); pEl.innerHTML="三层已叠满——<b>28 年红旗不倒，是地理算出来的结果。</b>"; }
+      }, s[1]));
+    });
+  }
+  function goStep(i){
+    clearTimers(); mark(false); narr.classList.remove("on");
+    var o={}; ORDER.forEach(function(k,j){ o[k]=j<=i; }); setLayers(o); show(ORDER[i]);
+    pEl.innerHTML="正在逐层叠加：<b>"+TXT[ORDER[i]].t+"</b>。";
+  }
+  playBtn.addEventListener("click",play);
+  resetBtn.addEventListener("click",function(){
+    clearTimers(); mark(false); narr.classList.remove("on");
+    setLayers({admin:false,terrain:false,water:false});
+    steps.forEach(function(b){ b.classList.remove("on","done"); });
+    pEl.textContent="三层全部关掉，地图只剩地形本身——金寨从哪里来，就一层一层叠回去。";
+  });
+  steps.forEach(function(b,i){ b.addEventListener("click",function(){ goStep(i); }); });
+  moreEl.addEventListener("click",function(){
+    var on=narr.classList.toggle("open");
+    moreEl.textContent=on?"收起":"展开：这一层为什么重要？";
+  });
+  goEl.addEventListener("click",function(){
+    var t=document.getElementById("itinGrid");
+    if(t){ var tb=document.querySelector(".topbar");
+      window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-tb.getBoundingClientRect().height-16,behavior:"smooth"}); }
+  });
+})();
+
+/* ---------- 剧本杀 · 地理抉择 ---------- */
+(function(){
+  document.querySelectorAll(".drama-card").forEach(function(card){
+    var v=card.querySelector(".verdict"); if(!v) return;
+    var opts=[].slice.call(card.querySelectorAll(".opt"));
+    opts.forEach(function(o){
+      o.addEventListener("click",function(){
+        opts.forEach(function(x){ x.classList.remove("on"); });
+        o.classList.add("on");
+        v.textContent=o.getAttribute("data-v");
+      });
+    });
+  });
+  var card1=document.querySelector(".drama-card"); if(!card1) return;
+  var PA=[[0,146],[0.31,156],[0.58,193],[0.99,210],[1.33,223],[1.55,241],[2.1,226],[2.59,240],[2.83,242],[3.21,227],[3.59,211],[4.14,229],[4.74,201],[5.33,178],[5.88,168],[6.4,183],[7,216],[7.73,179],[8.27,204],[8.84,219],[9.45,262],[9.98,343],[10.59,240],[11.04,167],[11.62,178],[12.23,164],[12.91,205],[13.48,188],[14.1,196],[14.66,215],[15.23,200],[15.83,215],[16.34,204],[16.98,183],[17.53,179],[18.2,182],[18.87,184],[19.53,216],[20.05,190],[20.52,217],[21.04,237],[21.44,231],[21.75,206],[22.05,230],[22.69,238],[22.98,217],[23.19,208],[23.38,220]];
+  var PB=[[0,136],[0.36,137],[0.72,136],[1.08,159],[1.44,171],[1.8,192],[2.16,180],[2.52,193],[2.88,220],[3.24,219],[3.6,229],[3.96,195],[4.32,198],[4.69,265],[5.05,256],[5.41,291],[5.77,363],[6.13,411],[6.49,409],[6.85,366],[7.21,442],[7.57,386],[7.93,315],[8.29,291],[8.65,370],[9.01,388],[9.37,447],[9.73,344],[10.09,416],[10.45,244],[10.81,281],[11.17,211],[11.53,177],[11.89,176],[12.26,202],[12.62,189],[12.98,192],[13.34,214],[13.7,185],[14.06,219],[14.42,204],[14.78,225],[15.14,241],[15.5,201],[15.86,230],[16.22,215],[16.58,208],[16.94,220]];
+  var box=document.createElement("div"); box.className="cmp";
+  var sv=el("svg",{viewBox:"0 0 360 152",role:"img","aria-label":"两条转移路线的高程剖面对比"});
+  box.appendChild(sv);
+  var cap=document.createElement("p");
+  cap.style.cssText="margin:7px 2px 3px;font-size:11.5px;color:#9a8f7b;line-height:1.7";
+  cap.textContent="实线＝乙案越岭直插（16.9 km）｜虚线＝甲案沿河谷绕行（23.4 km）。纵轴海拔 m，剖面每 60 米取一点。";
+  box.appendChild(cap);
+  card1.appendChild(box);
+  var W=360,H=152,L=36,R=12,T=14,Bm=22, MAXK=23.4, Y0=100, Y1=520;
+  function CX(k){ return L+(k/MAXK)*(W-L-R); }
+  function CY(e){ return H-Bm-(e-Y0)/(Y1-Y0)*(H-Bm-T); }
+  [100,200,300,400,500].forEach(function(e){
+    sv.appendChild(el("line",{x1:L,y1:CY(e).toFixed(1),x2:W-R,y2:CY(e).toFixed(1),stroke:"#ded4bd","stroke-width":1,"vector-effect":"non-scaling-stroke"}));
+    var t=el("text",{x:L-6,y:(CY(e)+3.5).toFixed(1),"text-anchor":"end",fill:"#9a8f7b","font-size":9.5});
+    t.textContent=e; sv.appendChild(t);
+  });
+  [0,10,20].forEach(function(k){
+    var t=el("text",{x:CX(k).toFixed(1),y:H-7,"text-anchor":"middle",fill:"#9a8f7b","font-size":9.5});
+    t.textContent=k+" km"; sv.appendChild(t);
+  });
+  function line(P,color,dash,width){
+    sv.appendChild(el("path",{d:"M"+P.map(function(p){return CX(p[0]).toFixed(1)+" "+CY(p[1]).toFixed(1);}).join("L"),
+      fill:"none",stroke:color,"stroke-width":width,"stroke-dasharray":dash||null,"stroke-linejoin":"round",vector:"","vector-effect":"non-scaling-stroke"}));
+  }
+  line(PA,"#2f6b8f","6 4",2.1);
+  line(PB,"#a32b1c",null,2.1);
+  [[9.37,447,"447 m"],[9.98,343,"343 m"]].forEach(function(p){
+    sv.appendChild(el("circle",{cx:CX(p[0]).toFixed(1),cy:CY(p[1]).toFixed(1),r:3.2,fill:p[2]==="447 m"?"#a32b1c":"#2f6b8f"}));
+    var t=el("text",{x:(CX(p[0])+5).toFixed(1),y:(CY(p[1])+3.5).toFixed(1),fill:p[2]==="447 m"?"#a32b1c":"#2f6b8f","font-size":9.5,"font-weight":600});
+    t.textContent=p[2]; sv.appendChild(t);
+  });
+})();
+/* 让点位卡初始提示一次 */
+setTimeout(function(){ if(!card.classList.contains("on")) hintEl.classList.add("on"); },1400);
+setTimeout(function(){ hintEl.classList.remove("on"); },6400);
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
