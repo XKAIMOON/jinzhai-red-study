@@ -104,6 +104,19 @@ svg.map{display:block;width:100%;height:auto;background:#f6f2e8}
 .ph{margin-top:14px;border:1px dashed var(--rule);background:#fbf8f0;padding:16px 14px;text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.06em}
 .ph b{display:block;color:var(--ink2);font-weight:500;font-size:13px;letter-spacing:.1em;margin-bottom:3px}
 
+/* ---------- 点位讲解音频 ---------- */
+.audiobar{display:flex;align-items:center;gap:11px;margin:0 0 14px;padding:9px 12px;border:1px solid var(--rule);background:#fff}
+.audiobar .ap{width:30px;height:30px;flex:none;border:1px solid var(--ink);background:var(--ink);color:#f7f2e6;border-radius:50%;
+  font-size:10px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;transition:.18s}
+.audiobar .ap:hover{background:var(--red);border-color:var(--red)}
+.audiobar.playing .ap{background:var(--red);border-color:var(--red)}
+.audiobar .ameta{flex:none;display:flex;flex-direction:column;gap:1px;min-width:72px}
+.audiobar .ameta b{font-weight:500;font-size:12px;letter-spacing:.1em;color:var(--ink2)}
+.audiobar .ameta i{font-style:normal;font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.audiobar .atrack{flex:1 1 auto;height:4px;background:#e4dccb;border-radius:2px;position:relative;cursor:pointer;touch-action:none}
+.audiobar .atrack:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.audiobar .afill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--red);border-radius:2px}
+
 /* ---------- 点位实景照片 ---------- */
 .shots{margin-top:15px;border-top:1px dashed var(--rule);padding-top:12px}
 .shots-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px}
@@ -412,6 +425,12 @@ footer a{color:var(--ink2)}
         <button class="close" id="cardClose" aria-label="关闭">✕</button>
       </div>
       <div class="body">
+        <div class="audiobar" id="cardAudio">
+          <button class="ap" id="caPlay" type="button" aria-label="播放讲解">▶</button>
+          <span class="ameta"><b>点位讲解</b><i id="caTime">0:00 / --:--</i></span>
+          <span class="atrack" id="caTrack" role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="afill" id="caFill"></span></span>
+          <audio id="caEl" preload="none"></audio>
+        </div>
         <dl class="grid" id="cardGrid"></dl>
         <div class="qbox">
           <h4>为 什 么 是 这 里 ？</h4>
@@ -754,6 +773,7 @@ var SITES=[
   why:"史河在这里出山。山区的物资、人流、消息都在出山口汇集，才有聚落、才有县城。博物馆讲的三十年革命史，起点就是这么一条能养活人的河谷——先有人，才有革命的人。",
   tasks:["集合签到，领取《大别山地区行政区划图》《金寨地形水系图》与任务卡","有序进馆，听讲解员走完主展线","带队老师结合地理与历史，多角度讲金寨红色文化"],
   cover:"photos/01-museum/exterior-front.jpg",
+  audio:"audio/01-museum.m4a", alen:"1:09",
   photos:[["photos/01-museum/exterior-front.jpg","正立面 · 门额"],
           ["photos/01-museum/exterior-plaza.jpg","馆前广场 · 研学队伍"],
           ["photos/01-museum/aerial-mountain.jpg","选址与山体环境 · 航拍"],
@@ -764,6 +784,7 @@ var SITES=[
   why:"纪念塔不建在河边低地，而建在俯瞰全城的台地上——精神高地和地形高地在这里重合了。从塔上往北看是淮河平原，往南看是层层叠叠的大别山，一眼就是这座县城全部的处境。",
   tasks:["参观金寨三十年革命史露天纪念碑群","听老师讲：鄂豫皖革命根据地核心区如何从「星火」到「燎原」","绕塔一周，全体默哀"],
   cover:"photos/02-square/aerial-overview.jpg",
+  audio:"audio/02-square.m4a", alen:"1:28",
   photos:[["photos/02-square/aerial-overview.jpg","广场与纪念塔 · 鸟瞰"],
           ["photos/02-square/plaza-sign.jpg","「金寨红军广场」题字"],
           ["photos/02-square/tower-sunset.jpg","革命烈士纪念塔"],
@@ -774,6 +795,7 @@ var SITES=[
   why:"商道从村里穿过，民团就驻在庙里。三面低山、一路通河谷——这种地形既能藏人，又方便从内部下手。所以周维炯选的是「打进去」而不是「攻上来」，一夜智取，没放几枪。地形决定了打法。",
   tasks:["大王庙前广场整队，观看起义雕塑","领取「立夏节起义」地点地图","听老师讲立夏节起义的故事","助教带学生自主分析：起义为什么发生在金寨"],
   cover:"photos/03-dawang/gate-main.jpg",
+  audio:"audio/03-dawang.m4a", alen:"1:26",
   photos:[["photos/03-dawang/gate-main.jpg","旧址正门与匾额"],
           ["photos/03-dawang/temple-courtyard.jpg","大王庙庭院与正殿"],
           ["photos/03-dawang/origin-sign.jpg","「首发地」主题标识"],
@@ -784,6 +806,7 @@ var SITES=[
   why:"北面金刚台挡着，脚下是史河上游的宽谷，河谷又是豫皖之间的通道——有屏障、有粮道、有进出的路。一个完整的苏维埃城能设在这里，靠的不是隐蔽，而是这个「既躲得进、又出得来」的位置。",
   tasks:["探究：完整的苏维埃城为什么落在汤家汇（豫皖孔道 · 史河支流宽谷 · 金刚台屏障）","沿「七条线」进一步了解这片红色热土"],
   cover:"photos/04-tangjia/town-arch.jpg",
+  audio:"audio/04-tangjia.m4a", alen:"1:28",
   photos:[["photos/04-tangjia/town-arch.jpg","「苏维埃红军小镇」牌坊"],
           ["photos/04-tangjia/town-alley.jpg","老街庭院与古建筑"],
           ["photos/04-tangjia/mural.jpg","红色主题壁画墙"],
@@ -1098,6 +1121,7 @@ function fillCard(s){
       shots.innerHTML="<b>实景照片 · 待补</b>点位实拍图到位后接入此处";
     }
   }
+  if(window.__setCardAudio) window.__setCardAudio(s);
 }
 function showSite(id){
   var s=SITES.filter(function(x){return x.id===id;})[0];
@@ -1128,6 +1152,7 @@ function openNode(nd){
 }
 function closeCard(){
   card.classList.remove("on"); card.setAttribute("aria-hidden","true");
+  if(window.__stopCardAudio) window.__stopCardAudio();
   document.querySelectorAll(".mk").forEach(function(m){ m.classList.remove("active"); });
   if(window.__itinSync) window.__itinSync(null);
   if(window.__hl) window.__hl(null);
@@ -1167,6 +1192,60 @@ document.addEventListener("keydown",function(e){
     else if(e.key==="ArrowRight") show(idx+1);
   });
   window.__openShots=function(s,i){ site=s; show(i); lb.classList.add("on"); };
+})();
+
+/* ---------- 点位讲解音频 ---------- */
+(function(){
+  var box=document.getElementById("cardAudio"), el=document.getElementById("caEl");
+  if(!box||!el) return;
+  var btn=document.getElementById("caPlay"), track=document.getElementById("caTrack"),
+      fill=document.getElementById("caFill"), time=document.getElementById("caTime");
+  var cur=null;
+  function fmt(t){ if(!isFinite(t)||t<0) return "--:--"; var m=Math.floor(t/60), s=Math.floor(t-m*60); return m+":"+(s<10?"0":"")+s; }
+  function paint(){
+    var d=el.duration, t=el.currentTime||0;
+    fill.style.width=(d?Math.min(100,t/d*100):0)+"%";
+    time.textContent=fmt(t)+" / "+(d?fmt(d):"--:--");
+    track.setAttribute("aria-valuenow", d?Math.round(t/d*100):0);
+  }
+  function icon(){
+    var playing=!el.paused && !el.ended;
+    btn.textContent=playing?"❙❙":"▶";
+    btn.setAttribute("aria-label", playing?"暂停讲解":"播放讲解");
+    box.classList.toggle("playing", playing);
+  }
+  btn.addEventListener("click",function(){
+    if(!cur) return;
+    if(el.paused||el.ended){ var p=el.play(); if(p&&p.catch) p.catch(function(){}); } else { el.pause(); }
+  });
+  ["play","pause","ended"].forEach(function(ev){ el.addEventListener(ev,icon); });
+  el.addEventListener("timeupdate",paint);
+  el.addEventListener("loadedmetadata",paint);
+  el.addEventListener("durationchange",paint);
+  function seekAt(clientX){
+    if(!el.duration) return;
+    var r=track.getBoundingClientRect();
+    if(!r.width) return;
+    var x=Math.min(Math.max((clientX-r.left)/r.width,0),1);
+    el.currentTime=x*el.duration; paint();
+  }
+  track.addEventListener("click",function(e){ seekAt(e.clientX); });
+  track.addEventListener("keydown",function(e){
+    if(!el.duration) return;
+    if(e.key==="ArrowRight"){ el.currentTime=Math.min(el.duration,el.currentTime+5); paint(); e.preventDefault(); }
+    else if(e.key==="ArrowLeft"){ el.currentTime=Math.max(0,el.currentTime-5); paint(); e.preventDefault(); }
+    else if(e.key===" "||e.key==="Enter"){ btn.click(); e.preventDefault(); }
+  });
+  window.__setCardAudio=function(s){
+    if(!s || !s.audio){ box.hidden=true; el.pause(); cur=null; return; }
+    box.hidden=false;
+    if(cur!==s.audio){ el.pause(); cur=s.audio; el.src=s.audio; el.load(); }
+    else { el.pause(); el.currentTime=0; }
+    fill.style.width="0%";
+    time.textContent="0:00 / "+(s.alen||"--:--");
+    icon();
+  };
+  window.__stopCardAudio=function(){ if(!el.paused) el.pause(); };
 })();
 
 /* ---------- 剖面 ---------- */
@@ -1294,7 +1373,7 @@ document.addEventListener("keydown",function(e){
       '<span class="cover"><img src="'+s.cover+'" alt="'+s.name+'实景照片" loading="lazy"></span>'+
       '<span class="top"><span class="badge">'+marks[i]+'</span><span class="when">'+s.day+'</span></span>'+
       "<h3>"+s.name+"</h3>"+
-      '<span class="meta"><span>海拔 <b>'+s.elev+'</b> m</span><span>到下一站 <b>'+nextTxt+"</b></span></span>"+
+      '<span class="meta"><span>海拔 <b>'+s.elev+'</b> m</span><span>到下一站 <b>'+nextTxt+"</b></span><span>讲解 <b>"+(s.alen||"—")+"</b></span></span>"+
       '<span class="terr">'+s.terrain+"</span>";
     b.addEventListener("click",function(){ go(key); });
     box.appendChild(b);
