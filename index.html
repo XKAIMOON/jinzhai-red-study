@@ -104,6 +104,33 @@ svg.map{display:block;width:100%;height:auto;background:#f6f2e8}
 .ph{margin-top:14px;border:1px dashed var(--rule);background:#fbf8f0;padding:16px 14px;text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.06em}
 .ph b{display:block;color:var(--ink2);font-weight:500;font-size:13px;letter-spacing:.1em;margin-bottom:3px}
 
+/* ---------- 点位实景照片 ---------- */
+.shots{margin-top:15px;border-top:1px dashed var(--rule);padding-top:12px}
+.shots-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px}
+.shots-hd h4{margin:0;font-size:12px;letter-spacing:.16em;color:var(--ink3);font-weight:500}
+.shots-hd .src{font-size:11px;color:var(--ink3);letter-spacing:.04em}
+.shots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 7px;align-items:start}
+.shots figure{margin:0}
+.shots .fr{display:block;overflow:hidden;border:1px solid var(--rule);background:#efe9dc;cursor:zoom-in}
+.shots img{display:block;width:100%;height:88px;object-fit:cover;transition:transform .4s}
+.shots .fr:hover img{transform:scale(1.07)}
+.shots figcaption{font-size:11px;line-height:1.5;color:var(--ink3);padding:4px 0 0;letter-spacing:.02em}
+.shots .note{margin:9px 0 0;font-size:11px;color:var(--ink3);letter-spacing:.04em}
+
+/* ---------- 实景照片灯箱 ---------- */
+.lb{position:fixed;inset:0;z-index:90;background:rgba(26,20,13,.93);display:none;align-items:center;justify-content:center;padding:32px 24px}
+.lb.on{display:flex}
+.lb img{display:block;max-width:min(1180px,92vw);max-height:76vh;box-shadow:0 24px 60px rgba(0,0,0,.55)}
+.lb .cap{position:absolute;left:24px;right:24px;bottom:22px;text-align:center;color:#f2ece0;font-size:13px;letter-spacing:.06em}
+.lb .x{position:absolute;top:16px;right:18px;width:34px;height:34px;border:1px solid rgba(240,232,216,.5);background:transparent;
+  color:#f2ece0;font-size:15px;line-height:1;border-radius:2px;cursor:pointer;display:grid;place-items:center}
+.lb .x:hover{border-color:#f2ece0}
+.lb .nav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:58px;border:1px solid rgba(240,232,216,.35);
+  background:rgba(0,0,0,.26);color:#f2ece0;font-size:17px;line-height:1;border-radius:2px;cursor:pointer}
+.lb .nav:hover{background:rgba(0,0,0,.45)}
+.lb .prev{left:16px}
+.lb .next{right:16px}
+
 /* ---------- 行程一览 ---------- */
 .itin{margin-top:30px}
 .itin-hd{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--ink);padding-bottom:9px}
@@ -124,6 +151,9 @@ svg.map{display:block;width:100%;height:auto;background:#f6f2e8}
 .itin-card .meta{font-size:12.5px;color:var(--ink2);display:flex;gap:14px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
 .itin-card .meta b{font-weight:600;color:var(--ink)}
 .itin-card .terr{margin:9px 0 0;font-size:12px;color:var(--ink3);line-height:1.65}
+.itin-card .cover{display:block;margin:-15px -16px 12px;height:104px;overflow:hidden;border-bottom:1px solid var(--rule);background:#e9e2d4}
+.itin-card .cover img{display:block;width:100%;height:100%;object-fit:cover;filter:saturate(.94)}
+.itin-card:hover .cover img{filter:saturate(1.04)}
 
 /* ---------- 剖面 ---------- */
 .profile{margin-top:30px;border:1px solid var(--ink);background:#faf7ee;box-shadow:var(--shadow);position:relative}
@@ -373,7 +403,7 @@ footer a{color:var(--ink2)}
           <h4>本 站 任 务</h4>
           <ul id="cardTasks"></ul>
         </div>
-        <div class="ph" id="cardPhoto"><b>实景照片 · 待补</b>点位实拍图到位后接入此处</div>
+        <div class="shots" id="cardPhoto"></div>
       </div>
     </aside>
   </section>
@@ -648,7 +678,8 @@ footer a{color:var(--ink2)}
       <p class="credits">
         大别山山脊（金寨县境内）、金寨站沿线 ×2、古碑镇沿线 ×2、天堂寨镇、天堂寨景区：Wikimedia Commons，CC BY-SA 3.0 / 4.0；
         合武铁路：CC BY-SA 4.0。作者：Vmenkov、そらみみ、JtWang、Qa003qa003。
-        以上均为沿线氛围影像，非研学点位实拍。
+        以上均为沿线氛围影像；四个研学点的实景照片（点位卡内各 5 张）为公开网页检索采集（2026-09），
+        仅供教学与课程设计参考，正式对外发布前请与原作者确认授权或替换为自拍图片。
       </p>
     </div>
   </div>
@@ -703,19 +734,43 @@ var SITES=[
  {n:1,id:"museum",name:"金寨县革命博物馆",day:"第一天 08:20–10:40",elev:86,terrain:"梅山盆地 · 史河出山口河谷平地",
   water:"史河（干流）",next:"0.44",
   why:"史河在这里出山。山区的物资、人流、消息都在出山口汇集，才有聚落、才有县城。博物馆讲的三十年革命史，起点就是这么一条能养活人的河谷——先有人，才有革命的人。",
-  tasks:["集合签到，领取《大别山地区行政区划图》《金寨地形水系图》与任务卡","有序进馆，听讲解员走完主展线","带队老师结合地理与历史，多角度讲金寨红色文化"]},
+  tasks:["集合签到，领取《大别山地区行政区划图》《金寨地形水系图》与任务卡","有序进馆，听讲解员走完主展线","带队老师结合地理与历史，多角度讲金寨红色文化"],
+  cover:"photos/01-museum/exterior-front.jpg",
+  photos:[["photos/01-museum/exterior-front.jpg","正立面 · 门额"],
+          ["photos/01-museum/exterior-plaza.jpg","馆前广场 · 研学队伍"],
+          ["photos/01-museum/aerial-mountain.jpg","选址与山体环境 · 航拍"],
+          ["photos/01-museum/interior-hall-a.jpg","展厅 · 将军事迹陈列"],
+          ["photos/01-museum/interior-hall-b.jpg","展厅 · 史料与地图版面"]]},
  {n:2,id:"square",name:"金寨红军广场",day:"第一天 14:00–17:00",elev:80,terrain:"梅山镇 · 史河左岸台地",
   water:"史河（干流）",next:"58.8",
   why:"纪念塔不建在河边低地，而建在俯瞰全城的台地上——精神高地和地形高地在这里重合了。从塔上往北看是淮河平原，往南看是层层叠叠的大别山，一眼就是这座县城全部的处境。",
-  tasks:["参观金寨三十年革命史露天纪念碑群","听老师讲：鄂豫皖革命根据地核心区如何从「星火」到「燎原」","绕塔一周，全体默哀"]},
+  tasks:["参观金寨三十年革命史露天纪念碑群","听老师讲：鄂豫皖革命根据地核心区如何从「星火」到「燎原」","绕塔一周，全体默哀"],
+  cover:"photos/02-square/aerial-overview.jpg",
+  photos:[["photos/02-square/aerial-overview.jpg","广场与纪念塔 · 鸟瞰"],
+          ["photos/02-square/plaza-sign.jpg","「金寨红军广场」题字"],
+          ["photos/02-square/tower-sunset.jpg","革命烈士纪念塔"],
+          ["photos/02-square/ceremony-crowd.jpg","广场纪念活动现场"],
+          ["photos/02-square/gate-front.jpg","石牌坊 · 烈士纪念馆"]]},
  {n:3,id:"dawang",name:"立夏节起义旧址（丁家埠大王庙）",day:"第二天 08:00–10:00",elev:138,terrain:"南溪镇丁家埠 · 河谷宽谷，三面低山",
   water:"史河支流",next:"20.3",
   why:"商道从村里穿过，民团就驻在庙里。三面低山、一路通河谷——这种地形既能藏人，又方便从内部下手。所以周维炯选的是「打进去」而不是「攻上来」，一夜智取，没放几枪。地形决定了打法。",
-  tasks:["大王庙前广场整队，观看起义雕塑","领取「立夏节起义」地点地图","听老师讲立夏节起义的故事","助教带学生自主分析：起义为什么发生在金寨"]},
+  tasks:["大王庙前广场整队，观看起义雕塑","领取「立夏节起义」地点地图","听老师讲立夏节起义的故事","助教带学生自主分析：起义为什么发生在金寨"],
+  cover:"photos/03-dawang/gate-main.jpg",
+  photos:[["photos/03-dawang/gate-main.jpg","旧址正门与匾额"],
+          ["photos/03-dawang/temple-courtyard.jpg","大王庙庭院与正殿"],
+          ["photos/03-dawang/origin-sign.jpg","「首发地」主题标识"],
+          ["photos/03-dawang/sculpture.jpg","起义主题雕塑 · 英雄群像"],
+          ["photos/03-dawang/memorial-hall.jpg","烈士题词墙"]]},
  {n:4,id:"tangjia",name:"汤家汇红色小镇",day:"第二天 10:00–12:00",elev:207,terrain:"汤家汇镇 · 史河上游宽谷（豫皖孔道）",
   water:"史河支流",next:"—",
   why:"北面金刚台挡着，脚下是史河上游的宽谷，河谷又是豫皖之间的通道——有屏障、有粮道、有进出的路。一个完整的苏维埃城能设在这里，靠的不是隐蔽，而是这个「既躲得进、又出得来」的位置。",
-  tasks:["探究：完整的苏维埃城为什么落在汤家汇（豫皖孔道 · 史河支流宽谷 · 金刚台屏障）","沿「七条线」进一步了解这片红色热土"]}
+  tasks:["探究：完整的苏维埃城为什么落在汤家汇（豫皖孔道 · 史河支流宽谷 · 金刚台屏障）","沿「七条线」进一步了解这片红色热土"],
+  cover:"photos/04-tangjia/town-arch.jpg",
+  photos:[["photos/04-tangjia/town-arch.jpg","「苏维埃红军小镇」牌坊"],
+          ["photos/04-tangjia/town-alley.jpg","老街庭院与古建筑"],
+          ["photos/04-tangjia/mural.jpg","红色主题壁画墙"],
+          ["photos/04-tangjia/soviet-city.jpg","苏维埃银行旧址"],
+          ["photos/04-tangjia/town-river-view.jpg","史河河谷与镇区 · 航拍"]]}
 ];
 
 /* 把真实坐标与里程合并进来 */
@@ -1005,6 +1060,26 @@ function fillCard(s){
     "<dt>到下一站</dt><dd>"+(s.next==="—"?"—":"约 "+s.next+"<span class='u'>km</span>")+"</dd>";
   cardWhy.textContent=s.why;
   cardTasks.innerHTML=s.tasks.map(function(t){return "<li>"+t+"</li>";}).join("");
+  var shots=document.getElementById("cardPhoto");
+  if(shots){
+    if(s.photos && s.photos.length){
+      shots.className="shots";
+      shots.innerHTML=
+        '<div class="shots-hd"><h4>点 位 实 景</h4><span class="src">共 '+s.photos.length+' 张 · 点击放大</span></div>'+
+        '<div class="shots-grid">'+s.photos.map(function(p){
+          return '<figure><span class="fr"><img src="'+p[0]+'" alt="'+s.name+' · '+p[1]+'" loading="lazy"></span>'+
+                 "<figcaption>"+p[1]+"</figcaption></figure>";
+        }).join("")+"</div>"+
+        '<p class="note">图片来源：公开网页检索（2026-09 采集），仅供教学参考。</p>';
+      var imgs=shots.querySelectorAll("img");
+      Array.prototype.forEach.call(imgs,function(im,ix){
+        im.parentNode.addEventListener("click",function(){ window.__openShots(s,ix); });
+      });
+    }else{
+      shots.className="ph";
+      shots.innerHTML="<b>实景照片 · 待补</b>点位实拍图到位后接入此处";
+    }
+  }
 }
 function showSite(id){
   var s=SITES.filter(function(x){return x.id===id;})[0];
@@ -1040,7 +1115,41 @@ function closeCard(){
   if(window.__hl) window.__hl(null);
 }
 document.getElementById("cardClose").addEventListener("click",closeCard);
-document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeCard(); });
+document.addEventListener("keydown",function(e){
+  var lb=document.getElementById("lb");
+  if(lb && lb.classList.contains("on")) return;
+  if(e.key==="Escape") closeCard();
+});
+
+/* ---------- 实景照片灯箱 ---------- */
+(function(){
+  var lb=document.createElement("div"); lb.className="lb"; lb.id="lb";
+  lb.innerHTML='<button class="x" type="button" aria-label="关闭">✕</button>'+
+    '<button class="nav prev" type="button" aria-label="上一张">‹</button>'+
+    '<button class="nav next" type="button" aria-label="下一张">›</button>'+
+    '<img alt=""><p class="cap"></p>';
+  document.body.appendChild(lb);
+  var img=lb.querySelector("img"), cap=lb.querySelector(".cap"), site=null, idx=0;
+  function show(i){
+    if(!site) return;
+    var n=site.photos.length; idx=(i%n+n)%n;
+    img.src=site.photos[idx][0];
+    img.alt=site.name+" · "+site.photos[idx][1];
+    cap.textContent=site.name+" · "+site.photos[idx][1]+"（"+(idx+1)+"/"+n+"）";
+  }
+  function close(){ lb.classList.remove("on"); img.removeAttribute("src"); }
+  lb.querySelector(".x").addEventListener("click",close);
+  lb.querySelector(".prev").addEventListener("click",function(){ show(idx-1); });
+  lb.querySelector(".next").addEventListener("click",function(){ show(idx+1); });
+  lb.addEventListener("click",function(e){ if(e.target===lb) close(); });
+  document.addEventListener("keydown",function(e){
+    if(!lb.classList.contains("on")) return;
+    if(e.key==="Escape") close();
+    else if(e.key==="ArrowLeft") show(idx-1);
+    else if(e.key==="ArrowRight") show(idx+1);
+  });
+  window.__openShots=function(s,i){ site=s; show(i); lb.classList.add("on"); };
+})();
 
 /* ---------- 剖面 ---------- */
 (function(){
@@ -1138,6 +1247,7 @@ document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeCard(
     b.type="button"; b.className="itin-card"; b.dataset.key=key;
     var nextTxt=(s.next==="—")?"—":("约 "+s.next+" km");
     b.innerHTML=
+      '<span class="cover"><img src="'+s.cover+'" alt="'+s.name+'实景照片" loading="lazy"></span>'+
       '<span class="top"><span class="badge">'+marks[i]+'</span><span class="when">'+s.day+'</span></span>'+
       "<h3>"+s.name+"</h3>"+
       '<span class="meta"><span>海拔 <b>'+s.elev+'</b> m</span><span>到下一站 <b>'+nextTxt+"</b></span></span>"+
@@ -1280,8 +1390,4 @@ setTimeout(function(){ hintEl.classList.remove("on"); },6400);
 </script>
 </body>
 </html>
-
-
-
-
 

@@ -34,6 +34,7 @@ map/data.js               地图数据（矢量图层、等高线、点位、路
 map/relief.jpg            底图晕渲
 map/inset.jpg             梅山镇区详图底图
 assets/                   沿线氛围影像（来源见页脚）
+photos/                   四个研学点实景照片（每点 5 张，公开网页检索采集，点位卡内可点开大图）
 basemaps/                 配套底图成品（行政缝隙 / 山地屏障 / 淮河水系 / 三联预览）
 materials/course-plan.pdf 完整课程方案（13 页）
 materials/design-note.docx 网站设计说明
@@ -60,3 +61,4 @@ materials/design-note.docx 网站设计说明
 - 代码与自制图表：本项目团队所有。
 - 地图数据：OpenStreetMap 贡献者（ODbL）、Natural Earth（公有领域）、NASA SRTM（公有领域）。
 - 摄影图片：Wikimedia Commons，CC BY-SA 3.0 / 4.0，已在小站页脚署名，二次使用请同样署名并以相同方式共享。
+- 点位实景照片（`photos/`）：公开网页检索采集（2026-09），仅供教学与课程设计参考，版权归原作者所有，正式发布前请确认授权或替换为自拍图片。
