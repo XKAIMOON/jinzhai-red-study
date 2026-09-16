@@ -191,6 +191,7 @@ footer a{color:var(--ink2)}
 @media (max-width:760px){
   h1.title{font-size:24px}
   .thesis{font-size:14px}
+  .topbar.min .layers{display:none}
   .wrap{padding:0 16px}
   .insight{padding:12px 14px;flex-direction:column;gap:7px}
   .insight p{font-size:13.5px}
@@ -204,6 +205,22 @@ footer a{color:var(--ink2)}
 .subnav a:hover{color:var(--ink);border-color:var(--rule);background:#fff}
 .subnav a b{font-weight:600;color:var(--red);margin-right:5px}
 .subnav .sp{flex:1 1 auto}
+.tb-toggle{display:inline-flex;align-items:center;gap:6px;margin-left:10px;border:1px solid var(--rule);background:#fff;
+  color:var(--ink2);font-family:var(--sans);font-size:12px;letter-spacing:.06em;padding:5px 11px;border-radius:2px;
+  cursor:pointer;transition:.16s;white-space:nowrap}
+.tb-toggle:hover{border-color:var(--ink);color:var(--ink)}
+.tb-toggle:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+/* 收起态：只留一条窄栏，不再遮住下方内容 */
+.topbar.min .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding-top:7px;padding-bottom:7px}
+.topbar.min .tb-brand,.topbar.min .thesis{display:none}
+.topbar.min .layers{order:1}
+.topbar.min .layers .lbl{display:none}
+.topbar.min .tog{padding:5px 10px;font-size:12.5px}
+.topbar.min .tog .en{display:none}
+.topbar.min .subnav{order:2;flex:1 1 auto;margin:0;padding:0;border-top:none}
+.topbar.min .subnav .sp{display:none}
+.topbar.min .subnav .tt{display:none}
+.topbar.min .tb-toggle{margin-left:auto}
 
 /* ---------- 通用版块 ---------- */
 .sec{margin-top:52px}
@@ -324,7 +341,7 @@ footer a{color:var(--ink2)}
 <body>
 <header class="topbar">
   <div class="wrap">
-    <div>
+    <div class="tb-brand">
       <p class="kicker">鄂豫皖大别山红色旅游创意策划大赛 · 红色研学课程设计</p>
       <h1 class="title">经纬金寨红<span class="dot">·</span>解码28年</h1>
       <p class="subtitle">金寨红色研学地图 ｜ 4 个研学点 · 2 天行程 · 79.6 公里</p>
@@ -343,14 +360,15 @@ footer a{color:var(--ink2)}
       <button class="tog" data-layer="water" aria-pressed="true"><span class="sw"><i></i></span>淮河水系<span class="en">史河</span></button>
     </div>
     <nav class="subnav" aria-label="页面导航">
-      <a href="#decoder"><b>①</b>地理解码器 · 为什么是金寨</a>
-      <a href="#map"><b>②</b>研学地图 · 四点点位</a>
-      <a href="#sec-profile"><b>③</b>地形剖面 · 读高程</a>
-      <a href="#drama"><b>④</b>剧本杀 · 地理抉择</a>
-      <a href="#tasks"><b>⑤</b>任务卡 · 四类闯关</a>
-      <a href="#works"><b>⑥</b>成果展厅 · 地理视角</a>
+      <a href="#decoder"><b>①</b>地理解码器<span class="tt"> · 为什么是金寨</span></a>
+      <a href="#map"><b>②</b>研学地图<span class="tt"> · 四点点位</span></a>
+      <a href="#sec-profile"><b>③</b>地形剖面<span class="tt"> · 读高程</span></a>
+      <a href="#drama"><b>④</b>剧本杀<span class="tt"> · 地理抉择</span></a>
+      <a href="#tasks"><b>⑤</b>任务卡<span class="tt"> · 四类闯关</span></a>
+      <a href="#works"><b>⑥</b>成果展厅<span class="tt"> · 地理视角</span></a>
       <span class="sp"></span>
-      <a href="#pack"><b>⑦</b>课程包 · 教师与评审</a>
+      <a href="#pack"><b>⑦</b>课程包<span class="tt"> · 教师与评审</span></a>
+      <button class="tb-toggle" id="tbToggle" type="button" aria-expanded="true">收起页头 ▲</button>
     </nav>
   </div>
 </header>
@@ -1223,6 +1241,32 @@ document.addEventListener("keydown",function(e){
   };
 })();
 
+/* ---------- 页头收起 / 展开 ---------- */
+(function(){
+  var bar=document.querySelector(".topbar"), btn=document.getElementById("tbToggle");
+  if(!bar||!btn) return;
+  var KEY="jinzhai.topbar.collapsed";
+  function sync(){
+    var min=bar.classList.contains("min");
+    btn.textContent=min?"展开页头 ▼":"收起页头 ▲";
+    btn.setAttribute("aria-expanded", min?"false":"true");
+    btn.title=min?"展开页头":"收起页头，减少对下方内容的遮挡";
+    var h=bar.getBoundingClientRect().height;
+    document.documentElement.style.scrollPaddingTop=(h+12)+"px"; /* 锚点跳转不被页头挡住 */
+  }
+  function apply(min){
+    bar.classList.toggle("min", !!min);
+    try{ localStorage.setItem(KEY, min?"1":"0"); }catch(e){}
+    sync();
+  }
+  var saved="0";
+  try{ saved=localStorage.getItem(KEY)||"0"; }catch(e){}
+  bar.classList.toggle("min", saved==="1");
+  sync();
+  btn.addEventListener("click",function(){ apply(!bar.classList.contains("min")); });
+  window.addEventListener("resize",sync);
+})();
+
 /* ---------- 行程一览 ---------- */
 (function(){
   var box=document.getElementById("itinGrid"); if(!box) return;
@@ -1390,4 +1434,3 @@ setTimeout(function(){ hintEl.classList.remove("on"); },6400);
 </script>
 </body>
 </html>
-
